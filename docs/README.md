@@ -84,7 +84,9 @@ and `line` in the light one (M1). A `line` cabinet draws its body, panels and tr
 the page — because the body colour itself was nearly invisible as a rule on a dark page (M2). The
 reels, the symbols, the bulbs and the ball follow `style` only; they are small or paper.
 
-`rows: 1` narrows the window to ±24° — one row, the payline — and the cabinet follows the window.
+`rows: 1` narrows the window to ±24° — one row, the payline — and the cabinet follows the window:
+the lower panel goes, the lever shortens. Two machines on one page never share an id that means
+two things: the id key carries every colour, the cabinet style and the lattice asked for.
 
 ## Symbols
 

@@ -103,4 +103,34 @@ test('the cabinet varies with the seed: all three tops appear, and brand never m
 		assert.equal(cab(Slots.machine({ seed, brand: '#d97706', theme: 'light' })), cab(Slots.machine({ seed })));
 	}
 	assert.deepEqual([...tops].sort(), ['arch', 'crown', 'flat']);
+	// the side margin is seeded too: the body's left edge moves with the seed
+	const lefts = new Set();
+	for (let seed = 1; seed <= 40; seed++) lefts.add(body(Slots.machine({ seed })).match(/<path d="M(-?\d+)/u)[1]);
+	assert.ok(lefts.size > 10, `the left edge took ${lefts.size} values`);
+});
+
+test('two machines on one page: an id they share always means the same thing', () => {
+	// every def by id — the element's own markup, nested defs included
+	const defs = (svg) => {
+		const d = svg.slice(0, svg.indexOf('</defs>')), out = new Map();
+		for (const m of d.matchAll(/<(\w+) id="([^"]+)"/gu)) {
+			const at = m.index, close = d.indexOf(`</${m[1]}>`, at), self = d.indexOf('/>', at);
+			const end = close >= 0 && (self < 0 || close < self || m[1] !== 'path') ? close : self;
+			out.set(m[2], d.slice(at, end));
+		}
+		return out;
+	};
+	const V = [{}, { theme: 'light' }, { theme: 'light', style: 'flat' }, { style: 'line' }, { theme: 'light', style: 'line' }, { lattice: 'none' },
+		{ lattice: 'trigon' }, { lattice: 'hex' }, { lattice: 'octagon' }, { rows: 1 }, { reels: 5 }, { lever: false },
+		{ brand: '#d97706' }, { classic: false }, { weight: 2 }];
+	for (const seed of [1, 7, 'spintax.net']) {
+		const all = V.map((o) => defs(Slots.machine({ seed, ...o })));
+		for (let i = 0; i < V.length; i++) {
+			for (let j = i + 1; j < V.length; j++) {
+				for (const [id, markup] of all[i]) {
+					if (all[j].has(id)) assert.equal(all[j].get(id), markup, `seed ${seed}: #${id} differs between ${JSON.stringify(V[i])} and ${JSON.stringify(V[j])}`);
+				}
+			}
+		}
+	}
 });

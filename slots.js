@@ -385,6 +385,8 @@
 			p: o.precision == null ? 0 : o.precision,
 			w: o.weight == null ? 1 : o.weight,
 			flat: o.style !== 'line',
+			// the cabinet style: the caller's, or flat on dark and line on light (M1)
+			cab: o.style ? o.style !== 'line' : o.theme !== 'light',
 			col: function (role) {
 				var pin = o[role];
 				return pin != null && pin !== 'auto' ? esc(pin) : toHex(r[role]);
@@ -394,7 +396,7 @@
 		// different machines under one seed on one page never share an id (cards-lite's lesson).
 		// salt remains for the same picture twice.
 		for (var k in TINT) key += c.col(TINT[k]);
-		key += c.col('strip') + c.col('green') + c.col('ink') + c.flat + c.w + c.p;
+		key += c.col('strip') + c.col('green') + c.col('ink') + c.col('outline') + c.flat + c.cab + c.w + c.p + o.lattice;
 		c.tk = tokens(S, (o.salt || '') + key);
 		c.add = function (k, make) {
 			if (!seen[k]) { var id = c.tk(), m; seen[k] = id; m = make(); c.defs += m.replace('"%"', '"' + id + '"'); }
@@ -480,7 +482,7 @@
 		var kind = KINDS.indexOf(o.lattice) >= 0 ? o.lattice : KINDS[Math.floor(S('cab:lattice')() * 3)];
 		var pitch = 22 + 22 * S('cab:pitch')(), flatHex = kind === 'hex' && S('cab:orient')() < 0.5;
 		var tall = kind === 'hex' ? 3 * (pitch / SQRT3) : pitch;
-		return ['fill', 'url(#' + c.add('tile' + col, function () {
+		return ['fill', 'url(#' + c.add('tile' + col + op, function () {
 			return el('pattern', ['id', '%', 'patternUnits', 'userSpaceOnUse',
 				'width', n(flatHex ? tall : pitch, 2), 'height', n(flatHex ? pitch : tall, 2),
 				'patternTransform', 'translate(' + n(pitch * S('cab:phase')(), 2) + ' ' + n(pitch * S('cab:phase2')(), 2) +
@@ -496,9 +498,7 @@
 		var c = context(o, 'machine' + k + (o.classic === false) + one), p = c.p, S = c.S, i;
 		var ww = k * CW + (k - 1) * GAP, wh = 2 * R * Math.sin(one ? VIEW1 : VIEW), x0 = -ww / 2, y0 = -wh / 2;
 		var bz = 24, bx = x0 - bz, by = y0 - bz, bw = ww + 2 * bz, bh = wh + 2 * bz;
-		// the cabinet style: the caller's, or flat on dark and line on light (M1)
-		var cab = o.style ? c.flat : o.theme !== 'light';
-		var line = c.col('outline'), trim = c.col('trim'), ink = c.col('ink'), W6 = n(6 * c.w, 2);
+		var cab = c.cab, line = c.col('outline'), trim = c.col('trim'), ink = c.col('ink'), W6 = n(6 * c.w, 2);
 		var fill = function (col) { return cab ? ['fill', col] : ['fill', 'none', 'stroke', line, 'stroke-width', W6]; };
 		var rect = function (x, y, w, h, r, paint) {
 			return el('rect', ['x', n(x, p), 'y', n(y, p), 'width', n(w, p), 'height', n(h, p), 'rx', r ? n(r, p) : null].concat(paint));
