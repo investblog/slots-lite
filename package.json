@@ -1,0 +1,53 @@
+{
+  "name": "slots-lite",
+  "version": "0.0.0",
+  "description": "A procedural slot machine as an SVG string. Seeded reels and cabinet, brand-aware classic palette, line or flat, classic and procedural symbols, an optional CSS spin. Zero dependencies; runs in Node at build time and in the browser.",
+  "main": "slots.js",
+  "files": [
+    "slots.js",
+    "slots.min.js",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "terser slots.js --compress --mangle -o slots.min.js",
+    "size": "node scripts/size.mjs",
+    "lint": "eslint .",
+    "test": "node --test \"test/*.test.mjs\"",
+    "prepack": "npm run build"
+  },
+  "config": {
+    "sizeBudget": 8192
+  },
+  "keywords": [
+    "slot-machine",
+    "slots",
+    "reels",
+    "casino",
+    "svg",
+    "illustration",
+    "generative",
+    "generative-art",
+    "procedural",
+    "hero-background",
+    "line-art",
+    "palette",
+    "ssr",
+    "static-site",
+    "zero-dependencies",
+    "vanilla-js"
+  ],
+  "author": "301st (https://301.st)",
+  "license": "MIT",
+  "homepage": "https://github.com/investblog/slots-lite#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/investblog/slots-lite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/investblog/slots-lite/issues"
+  },
+  "devDependencies": {
+    "eslint": "^10.11.0",
+    "terser": "^5.51.2"
+  }
+}

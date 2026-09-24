@@ -1,0 +1,37 @@
+---
+type: decision
+status: accepted
+date: 2026-09-23
+tags: [signature]
+project: slots-lite
+---
+
+# 004 — the classic symbols as fixed paths: a counted no-signature exception
+
+## Context
+
+Roulette's ADR 005 forbids anything in the output that fingerprints the tool. A seven, a bar, a
+bell and a cherry are fixed shapes: a seeded seven stops being a seven. cards-lite met the same
+conflict with its rank glyphs and resolved it with a counted exception (its ADR 005): the rule
+guards tool identity, not subject identity, and roulette itself ships fixed subject geometry.
+
+## Decision
+
+The classic set — `seven`, `bar`, `bell`, `cherry`, `lemon`, `plum` — is drawn from fixed `d`
+values, **at most 8** (the six symbols, the cherry's stem as its own colour, the bar plaque's rule).
+The exact number is fixed at M2 when the paths exist, and a test pins that the seed-invariant `d`
+set of a machine is exactly that list. Double and triple bars are the same `d` placed with `<use>`.
+
+Everything else carries no fixed path: the procedural symbols (`gem`, `star`, `coin`), the cabinet,
+the lattice, the bulbs. The test requires them to contribute **zero** seed-invariant `d` values.
+`classic: false` removes the whole exception.
+
+The honest counter, as in cards-lite: a drawn seven is a design choice where a betting grid is
+canonical, so the exception genuinely widens the surface roulette's ADR 005 protects. It is
+accepted because the alternative — procedural symbols only — was offered to the user on
+2026-09-23 and declined: the subject is not recognisable without the classics.
+
+## Consequences
+
+- Growing the classic set (watermelon, grapes, horseshoe) is an amendment to this ADR with a new
+  count, never a quiet addition.
