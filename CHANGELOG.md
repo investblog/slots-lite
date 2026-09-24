@@ -5,7 +5,8 @@ a line here saying what changed (roulette-lite's ADR 010, adopted by ADR 001).
 
 ## 0.1.0 — 2026-09-24
 
-First release.
+First release, published as `@spintax/slots-lite` — npm refused the unscoped `slots-lite` as too
+near an existing package (ADR 002).
 
 - `Slots.machine(opts)` — a whole slot machine as an SVG string, in Node at build time or in the
   browser: the cabinet, the reel window and three to five reels. `reels` appends — under one

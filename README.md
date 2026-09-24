@@ -5,7 +5,7 @@ browser — so a static site gets its hero art with no script on the page. **`se
 reels and shapes the cabinet; **`brand`** spins the colours: one hex, the whole machine — a red
 seven, a gold bell, paper reels and a cabinet in your brand's main colour. Classic symbols beside
 procedural ones, named results such as a jackpot as pictures only, flat or line art, and an
-optional spin that stops for readers who asked for less motion. Zero dependencies, 7.7 KB gzipped.
+optional spin that stops for readers who asked for less motion. Zero dependencies, under 8 KB gzipped.
 
 [![npm](https://img.shields.io/npm/v/@spintax/slots-lite.svg)](https://www.npmjs.com/package/@spintax/slots-lite)
 [![license](https://img.shields.io/npm/l/@spintax/slots-lite.svg)](LICENSE)

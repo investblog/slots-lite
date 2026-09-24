@@ -34,7 +34,8 @@ extras sit **below** the window and the group travels down, so the symbols move 
 reel's do. The overshoot of `cubic-bezier(.2,.7,.3,1.08)` peaks at 1.05% of the travel — the
 curve's maximum is 1.0105, computed — so 14–25 units over N = 8–14 cells: a settle, not a bounce.
 Under `rows: 1` the first extra showed 19 units inside the window at rest; the extras start lower
-there. The live page goes to the user at M4's gate; their verdict is not recorded yet.
+there. The live page went to the user at M4's gate; they moved on to M5 without a comment on the spin —
+recorded as no objection, not as an explicit sign-off.
 
 ## Consequences
 

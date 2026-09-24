@@ -92,7 +92,7 @@ git push && git push --tags
 `package.json`, checks the tarball carries `slots.js`, `slots.min.js` and `slots.d.ts`, and
 publishes with provenance. A version already on the registry exits green.
 
-## The four npm failure modes, in the order they appear
+## The five npm failure modes, in the order they appear
 
 Each one reports something other than its cause. Inherited from octagons and roulette-lite; none
 of them was diagnosable from its own message.
@@ -102,8 +102,11 @@ of them was diagnosable from its own message.
 | `npm_*** is not a legal HTTP header value` | whitespace or a line break inside the token secret — npm sends the token as an HTTP header |
 | `EOTP` / one-time password required | a token *setting*, not a type: classic Automation tokens are gone, and a granular token without **Bypass 2FA** stops here against an account with 2FA |
 | `404 Not Found - PUT` | not a missing package: npm masks 403 as 404. The credential has no publish rights, or there is no trusted publisher for the OIDC path |
+| `403 Forbidden - PUT … Package name too similar to existing package …` | npm's typosquatting guard, applied only at the publish itself — `npm view` answering E404 says nothing about it. It refused `slots-lite` as too near `stats-lite` (2026-09-24, ADR 002 addendum); the scoped name it suggests cannot collide. Nothing is published, and a renamed package can go out in the next run |
 | `403 Forbidden - PUT … account has been temporarily suspended due to a recent security-sensitive action` | npm's 72-hour account hold, started by a recovery-code sign-in (roulette-lite, 2026-09-18; npm extended the hold to all accounts on 2026-09-09). It clears itself — no support ticket, and no new credential helps, because nothing about the credential is wrong |
 
-The first two cannot occur on the OIDC path. The last two both print
+The first two cannot occur on the OIDC path. The name check is a first-publish problem only. And
+after a successful first publish the registry may answer 404 for several minutes — about five for
+this package — before the new package appears; that is not a failure. The two 403/404 rows print
 `Signed provenance statement … published` immediately before failing, so a log that looks like a
 success up to its final line is the normal shape of both.
