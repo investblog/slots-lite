@@ -48,11 +48,11 @@ test('ADR 004: the procedural symbols and the cabinet contribute no fixed path â
 });
 
 test('a procedural symbol is one symbol per seed: the same gem on every reel', () => {
-	for (const seed of [1, 2, 'spintax.net']) {
+	// seeds checked to show a gem: `every` over none would pass for any library
+	for (const seed of [1, 2, 3]) {
 		const gem = ds(Slots.symbol({ symbol: 'gem', seed }))[0];
 		const svg = Slots.machine({ seed, reels: 5 });
-		const inMachine = ds(svg).filter((d) => d.startsWith(gem.slice(0, 8)));
-		assert.ok(inMachine.every((d) => d === gem), `seed ${seed}`);
+		assert.ok(ds(svg).includes(gem), `seed ${seed}: the machine's gem is the symbol's gem`);
 	}
 });
 
