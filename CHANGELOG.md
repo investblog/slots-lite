@@ -3,7 +3,7 @@
 From here on, any change to the output bytes for the same (seed, options) is a minor version with
 a line here saying what changed (roulette-lite's ADR 010, adopted by ADR 001).
 
-## 0.1.0 — unreleased
+## 0.1.0 — 2026-09-24
 
 First release.
 
