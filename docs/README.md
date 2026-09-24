@@ -10,12 +10,14 @@ project: slots-lite
 Docs for developers and agents. `index.html` will be the verification surface, `test/` the gate.
 Contract-first: change the doc here **before** the code, then code.
 
-**Status (2026-09-24): M5 done.** The whole v0.1 API — `machine()`, `symbol()`, `palette()`,
+**Status (2026-09-24): v0.1.0 released** as `@spintax/slots-lite` on npm, with provenance.
+Before that, M5: The whole v0.1 API — `machine()`, `symbol()`, `palette()`,
 `init()` — with the symbols, the drum, the cabinet, the results and the spin; `slots.d.ts`; 50 Node
 tests and a 13-check browser gate green in Chromium, Firefox and WebKit, both motion modes, every
 check seen red under `--mutate`; **measured 7939 B** against a budget frozen at 8192; the
-playground, CI and release workflows written. The repository is local and nothing is published:
-no GitHub repo, no npm package, version `0.0.0` — M6 is each of those on the user's go.
+playground, CI and release workflows written. Then M6: integrated on a static site, the repository
+`investblog/slots-lite` public with Pages serving the playground, the bootstrap publish, the Trusted
+Publisher, and every later release over OIDC from a `v*` tag.
 Numbers marked *provisional* below are forecasts, not measurements, and each one names the
 milestone that replaces it with a measurement. This line is kept true at every milestone.
 
