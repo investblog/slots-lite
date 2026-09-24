@@ -22,7 +22,8 @@ the way. The milestones are the v0.1 plan; this list is its public index.
   an unclaimed `gold` is never tinted; under `theme: 'light'` the cabinet defaults to `line`.
   18 tests; the three new ones seen red against four mutations. 3960 dark renders byte-identical
   to M0, and `stroke`/`background`/`halo` unmoved. **Measured 3362 B.**
-- [ ] M2 — the six classic symbols (exact count into ADR 004), the three procedural ones, the drum
+- [ ] M2 — the six classic symbols (the user chose on 2026-09-24: the M1 stand-in shapes are the
+  starting geometry; the bar is to be reworked) (exact count into ADR 004), the three procedural ones, the drum
   projection and shade, `symbol()`
 - [ ] M3 — cabinet, reels, weight table, `reels` 3–5, `rows: 1`; output size measured
 - [ ] M4 — results, the spin (prototyped first), `init()`, types, budget frozen
