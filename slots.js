@@ -268,7 +268,7 @@
 	// seven · cherries · their stem · bell · lemon · plum · the bar's plaque · the word BAR, the last
 	// a stroked skeleton like cards' rank glyphs. Nothing else in the picture is a constant `d`.
 	var D = {
-		seven: 'M-46-64H48V-40L4 64H-30L14-36H-46Z',
+		seven: 'M-38-52C-35-57-32-60-27-63C-13-70 4-68 18-62C27-58 36-53 37-66H56V-39C23-21 14 22 18 56L20 66H-36C-36 29-26 5 5-17C8-20 22-28 25-31C17-28 9-27 1-28C-10-30-29-42-36-26C-38-22-37-18-37-14H-56V-66H-37Z',
 		cherry: 'M-54 34a26 26 0 1 0 52 0a26 26 0 1 0-52 0M2 26a26 26 0 1 0 52 0a26 26 0 1 0-52 0',
 		stem: 'M-28 8Q-18-40 30-62M28 0Q22-34 30-62',
 		bell: 'M0-62C-30-62-40-32-42 0L-58 30H58L42 0C40-32 30-62 0-62ZM-12 44a12 12 0 1 0 24 0a12 12 0 1 0-24 0M-7-70a7 7 0 1 0 14 0a7 7 0 1 0-14 0',
@@ -300,15 +300,22 @@
 			for (i = 0; i < rings; i++) d += circle(rim - 10 - i * step, p);
 			return { d: circle(rim, p), lines: d };
 		}
-		// gem: a crown over a pavilion, cut into 5–8 facets
-		var f = 5 + Math.floor(u('facets') * 4), t = 30 + 14 * u('table'), deep = 44 + 20 * u('depth'), g = -10, top = -46;
-		d = 'M' + n(-t, p) + ' ' + top + 'H' + n(t, p) + 'L66 ' + g + 'L0 ' + n(deep, p) + 'L-66 ' + g + 'Z';
-		var lines = 'M-66 ' + g + 'H66';
-		for (i = 1; i < f; i++) {
-			var x = -66 + 132 * i / f;
-			lines += 'M' + n(x * t / 66, p) + ' ' + top + 'L' + n(x, p) + ' ' + g + 'L0 ' + n(deep, p);
+		// gem, after the reference the user chose: a table, a crown cut into a zigzag of triangles with
+		// every other one lit, and a tall pavilion whose facets meet at the point. The seed sets the
+		// number of table facets (2–4), the table's width, the crown's height and the depth.
+		var m = 2 + Math.floor(u('facets') * 3), t = 34 + 10 * u('table'), g = -18 - 8 * u('crown'), top = g - 34;
+		var deep = 60 + 12 * u('depth'), zig = [], lit = '', lines = 'M-70 ' + n(g, p) + 'H70';
+		for (i = 0; i <= m; i++) {
+			// girdle, then table, alternating; the inner girdle points sit under the table's joints
+			zig.push(i ? [(2 * i - 1 - m) / m * t * 0.8 * 70 / t, g] : [-70, g], [-t + 2 * t * i / m, top]);
 		}
-		return { d: d, lines: lines };
+		zig.push([70, g]);
+		var pt = function (q) { return n(q[0], p) + ' ' + n(q[1], p); };
+		lines += 'M' + zig.map(pt).join('L');
+		for (i = 0; i + 2 < zig.length; i += 2) lit += 'M' + pt(zig[i]) + 'L' + pt(zig[i + 1]) + 'L' + pt(zig[i + 2]) + 'Z';
+		for (i = 2; i < zig.length - 1; i += 2) lines += 'M' + pt(zig[i]) + 'L0 ' + n(deep, p);
+		d = 'M' + pt(zig[1]) + 'H' + n(t, p) + 'L70 ' + n(g, p) + 'L0 ' + n(deep, p) + 'L-70 ' + n(g, p) + 'Z';
+		return { d: d, lines: lines, lit: lit };
 	}
 	function circle(r, p) {
 		r = n(r, p);
@@ -355,6 +362,7 @@
 			} else {
 				inner = paintBody(0);
 				if (name === 'cherry') inner += el('path', ['d', D.stem, 'fill', 'none', 'stroke', c.col('green'), 'stroke-width', 7, 'stroke-linecap', 'round']);
+				if (pr && pr.lit && c.flat) inner += el('path', ['d', pr.lit, 'fill', c.col('strip'), 'fill-opacity', '.35']);
 				if (pr && pr.lines) {
 					inner += el('path', ['d', pr.lines, 'fill', 'none', 'stroke', c.flat ? c.col('strip') : col,
 						'stroke-width', name === 'gem' ? 3 : 4, 'stroke-opacity', c.flat ? '.6' : null, 'stroke-linejoin', 'round']);

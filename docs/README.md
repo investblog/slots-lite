@@ -92,7 +92,7 @@ Nine symbols in two kinds. Every symbol is drawn upright on the 160-unit em, pai
 | `cherry` | classic, fixed `d` | `red`, stem `green` | a pair on one stem, one `d` per colour |
 | `lemon` | classic, fixed `d` | `gold` | |
 | `plum` | classic, fixed `d` | `violet` | |
-| `gem` | procedural | `gem` — the cabinet's hue, guarded on paper | a faceted crown: 5–8 facets, table width, pavilion depth |
+| `gem` | procedural | `gem` — the cabinet's hue, guarded on paper | a table, a crown of alternating triangles (every other one lit with paper under `flat`) and a tall pavilion to a point: 2–4 table facets, table width, crown height, depth |
 | `star` | procedural | `gold` | 5–8 points, inner ratio 0.38–0.55 |
 | `coin` | procedural | `gold` | a rim and 1–3 rings, optionally a lattice face |
 
@@ -278,9 +278,10 @@ custom-property name is a seeded token. The one carved exception is the counted 
   process + gzip level 9, never the `gzip` CLI). **Provisional 8192 B at M0** (ADR 007) — a
   forecast from cards-lite's measured parts, frozen after M4 at the measured size + 2.5%.
   Measured at M0: **3347 B** (the engine, `roles()` and the blank machine; cards' M0 was 3108).
-  At M2: **5491 B** — the symbols, the shade, the drum, the strips and `symbol()` added 2129 B
-  against a forecast of ~1.1 KB for the symbols alone. 2.7 KB remain for the cabinet, the spin,
-  `init()` and the results, which ADR 007 forecast at ~2.7 KB: the budget is now tight, not slack.
+  At M2: **5731 B** — the symbols, the shade, the drum, the strips and `symbol()` added 2384 B
+  against a forecast of ~1.1 KB for the symbols alone (240 B of it the calligraphic seven and the
+  reworked gem). 2.4 KB remain for the cabinet, the spin, `init()` and the results, which ADR 007
+  forecast at ~2.7 KB: the budget will have to move at the M4 freeze.
 - Output: *provisional*, measured at M3 over 60 seeds and stated as a band. Forecast: 5–9 KB raw
   for a three-reel machine, most of it the cabinet.
 

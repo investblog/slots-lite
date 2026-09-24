@@ -46,6 +46,16 @@ drawing a crescent of its own.
 The user was shown third-party references in the same session and chose the library's own shapes;
 nothing from them is shipped. One idea was taken, and it is an idiom, not geometry: the shade.
 
+**The seven's provenance.** After the contact sheet the user generated a set of symbols with an AI
+tool (Recraft) and chose its calligraphic seven over the library's straight one. Its silhouette —
+one of the file's paths; the separate shade paths were dropped, since the library's own shade
+replaces them — was refitted to the 160 em, rounded to integers and its degenerate curves written
+as `H`/`V`/`L`: 198 characters. Nothing else from that file is shipped, including its C2PA
+manifest, which the no-signature rule would forbid anyway. The count is unchanged. The rest of that
+set was measured (+1239 B, double contours under `line`) and declined. The gem took its structure
+from a second generated reference — table, alternating crown, tall pavilion — but stays procedural
+and contributes no fixed path.
+
 ## Consequences
 
 - Growing the classic set (watermelon, grapes, horseshoe) is an amendment to this ADR with a new

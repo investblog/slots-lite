@@ -28,6 +28,9 @@ the way. The milestones are the v0.1 plan; this list is its public index.
   from reference art, as an idiom), the drum projection and gradient, `symbol()`, and — pulled
   forward from M3 so M2 had a machine to look at — the 20-position strips on `reel:i:*`. ADR 004
   count **exactly 8**. 27 tests, the new ones seen red against ten mutations. **Measured 5491 B.**
+  Then, on the user's review: the seven replaced by a calligraphic one refitted from the user's
+  Recraft generation, and the gem rebuilt after a second reference (alternating lit crown, tall
+  pavilion), still procedural. **5731 B.**
   Found on the way: `c.defs += make()` lost every def a nested `add()` wrote (JS reads the left
   side first) — invisible in cards-lite, which never nested.
 - [ ] M3 — cabinet, `rows: 1`; output size measured (the strips, weight table and `reels` 3–5
