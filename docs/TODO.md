@@ -33,8 +33,16 @@ the way. The milestones are the v0.1 plan; this list is its public index.
   pavilion), still procedural. **5731 B.**
   Found on the way: `c.defs += make()` lost every def a nested `add()` wrote (JS reads the left
   side first) — invisible in cards-lite, which never nested.
-- [ ] M3 — cabinet, `rows: 1`; output size measured (the strips, weight table and `reels` 3–5
-  appending landed at M2)
+- [x] M3 — done 2026-09-24. The cabinet: one body path with a `flat`/`arch`/`crown` top, a
+  marquee of dark glass with the lattice in gold and a ring of bulbs, a trim-framed lower panel,
+  the tray, the lever. The lattice is cards-lite's back port (three tiles, one seeded pattern for
+  both panels, `lattice: 'none'`). The M1 light-theme rule now reaches every cabinet part, drawn in
+  a new `outline` role — the cabinet hue's middle stop, ≥ 2.4 on the page — because the body colour
+  was nearly invisible as a rule on a dark page (M2). `rows: 1`. The spec's bezel notches were
+  dropped: their geometry depends only on the reel count, so they would have been a constant
+  drawing. 34 tests, the new ones seen red against ten mutations; one branch the mutations proved
+  dead (the ball above the cabinet's top) was removed. Output measured: 5.8–8.7 KB raw for three
+  reels. **7076 B.**
 - [ ] M4 — results, the spin (prototyped first), `init()`, types, budget frozen
 - [ ] M5 — browser gate with `--mutate`, playground, workflows on a current Node, README/CHANGELOG/RELEASING
 - [ ] M6 — integration in a static site, then 0.1.0 on the user's go

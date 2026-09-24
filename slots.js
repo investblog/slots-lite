@@ -17,7 +17,8 @@
 	var NS = 'http://www.w3.org/2000/svg';
 	var DEFAULT_BRAND = ['#00abf3', '#d6af3c', '#a91455'];
 	// machine space: origin at the centre of the payline, y down (ADR 003). Provisional until M2.
-	var CW = 200, GAP = 16, R = 260, VIEW = 60 * Math.PI / 180, STEP = 40 * Math.PI / 180, LEN = 20;
+	var CW = 200, GAP = 16, R = 260, VIEW = 60 * Math.PI / 180, VIEW1 = 24 * Math.PI / 180, STEP = 40 * Math.PI / 180, LEN = 20;
+	var SQRT3 = Math.sqrt(3), A_REG = (2 - Math.SQRT2) / 2; // 0.29289… exact regular octagon
 
 	// ── numbers and markup ──────────────────────────────────────────────────
 
@@ -238,6 +239,9 @@
 			// light theme that is a pastel the paper would swallow
 			gem: ensureContrast(lch2rgb(45, bC < 12 ? 0 : clamp(bC, 40, 70), bH), strip, 3, -1),
 			body: body.colors[0],
+			// a line cabinet's rule: the middle stop, which derive() holds ≥ 2.5 against the page —
+			// the body colour itself was nearly invisible as a rule on a dark page (M2)
+			outline: body.colors[1],
 			stroke: field.colors, background: field.background, halo: field.halo
 		};
 	}
@@ -424,30 +428,128 @@
 		return out;
 	}
 
+	// ── the lattice: the family's own tiles (cards-lite's back port) ────────
+
+	// The three `d` builders are the siblings' own, copied with their seam comments — both were
+	// earned by defects, and re-deriving them would re-earn them. Sources: trigons-lite.js:427,
+	// octagons.js:463, hexagons.js:870, by way of cards.js.
+	function lattice(kind, p2, flat) {
+		var d = [];
+		var q = function (v) { return Math.round(v * 1000) / 1000; };
+		var seg = function (x1, y1, x2, y2) {
+			// flat orientation is the same tile with x and y swapped (hexagons')
+			d.push(flat ? 'M' + q(y1) + ' ' + q(x1) + 'L' + q(y2) + ' ' + q(x2)
+				: 'M' + q(x1) + ' ' + q(y1) + 'L' + q(x2) + ' ' + q(y2));
+		};
+		if (kind === 'trigon') {
+			// border segments sit on both opposite edges so the half-clipped strokes of
+			// neighbouring tiles sum to full weight; butt caps keep the vertices sharp
+			seg(0, 0, p2, 0); seg(0, p2, p2, p2);
+			seg(0, 0, 0, p2); seg(p2, 0, p2, p2);
+			seg(p2, 0, 0, p2);
+		} else if (kind === 'octagon') {
+			var a = A_REG * p2;
+			// Flats sit exactly on the tile edge, so a stroke there is half-clipped. Drawing each on
+			// BOTH opposite edges lets the neighbouring tile supply the missing half.
+			seg(a, 0, p2 - a, 0); seg(a, p2, p2 - a, p2);
+			seg(0, a, 0, p2 - a); seg(p2, a, p2, p2 - a);
+			seg(p2 - a, 0, p2, a); seg(p2, p2 - a, p2 - a, p2);
+			seg(a, p2, 0, p2 - a); seg(0, a, a, 0);
+		} else {
+			var sz = p2 / SQRT3;
+			var cell = function (cx, cy, r) {
+				var w2 = SQRT3 / 2 * r;
+				var v = [[cx, cy - r], [cx + w2, cy - r / 2], [cx + w2, cy + r / 2],
+					[cx, cy + r], [cx - w2, cy + r / 2], [cx - w2, cy - r / 2]];
+				for (var k = 0; k < 6; k++) seg(v[k][0], v[k][1], v[(k + 1) % 6][0], v[(k + 1) % 6][1]);
+			};
+			// the centre cell's side walls sit on the tile edge, so both are drawn (the octagons' seam)
+			cell(p2 / 2, sz, sz);
+			// the one wall not on the centre cell: between the two half-cells
+			seg(p2 / 2, 2 * sz, p2 / 2, 3 * sz);
+		}
+		return d.join('');
+	}
+	var KINDS = ['trigon', 'octagon', 'hex'];
+
+	// the panels' pattern: one seeded tile for the marquee and the lower panel, in `col`, as the
+	// panel's fill — or none at all, `lattice: 'none'`
+	function tile(c, col, op) {
+		var S = c.S, o = c.o;
+		if (o.lattice === 'none') return ['fill', 'none'];
+		var kind = KINDS.indexOf(o.lattice) >= 0 ? o.lattice : KINDS[Math.floor(S('cab:lattice')() * 3)];
+		var pitch = 22 + 22 * S('cab:pitch')(), flatHex = kind === 'hex' && S('cab:orient')() < 0.5;
+		var tall = kind === 'hex' ? 3 * (pitch / SQRT3) : pitch;
+		return ['fill', 'url(#' + c.add('tile' + col, function () {
+			return el('pattern', ['id', '%', 'patternUnits', 'userSpaceOnUse',
+				'width', n(flatHex ? tall : pitch, 2), 'height', n(flatHex ? pitch : tall, 2),
+				'patternTransform', 'translate(' + n(pitch * S('cab:phase')(), 2) + ' ' + n(pitch * S('cab:phase2')(), 2) +
+					') rotate(' + n(90 * S('cab:turn')(), 2) + ')'],
+			// butt caps (the default, never set): round caps blunt the vertices (hexagons.js:918)
+			el('path', ['d', lattice(kind, pitch, flatHex), 'fill', 'none', 'stroke', col,
+				'stroke-width', n((1 + 1.4 * S('cab:weight')()) * c.w, 2), 'stroke-opacity', op]));
+		}) + ')'];
+	}
+
 	function machine(opts) {
-		var o = opts || {}, k = Math.max(3, Math.min(5, Math.round(o.reels) || 3));
-		var c = context(o, 'machine' + k + (o.classic === false)), p = c.p;
-		var ww = k * CW + (k - 1) * GAP, wh = 2 * R * Math.sin(VIEW), x0 = -ww / 2, y0 = -wh / 2;
+		var o = opts || {}, k = Math.max(3, Math.min(5, Math.round(o.reels) || 3)), one = o.rows === 1;
+		var c = context(o, 'machine' + k + (o.classic === false) + one), p = c.p, S = c.S, i;
+		var ww = k * CW + (k - 1) * GAP, wh = 2 * R * Math.sin(one ? VIEW1 : VIEW), x0 = -ww / 2, y0 = -wh / 2;
 		var bz = 24, bx = x0 - bz, by = y0 - bz, bw = ww + 2 * bz, bh = wh + 2 * bz;
-		var box = [bx - 60, by - 200, bw + 120, bh + 360];
-		var rx = 24 + c.S('cab:rx')() * 24;
-		// flat fills the body; line draws it as a rule, the airy treatment. Under the light theme the
-		// body is a rule unless flat is asked for: filled, it was a pastel field on a white page (M1)
-		var body = (o.style ? c.flat : o.theme !== 'light')
-			? ['fill', c.col('body')]
-			: ['fill', 'none', 'stroke', c.col('body'), 'stroke-width', n(6 * c.w, p)];
-		var out = el('rect', ['x', n(box[0] + 8, p), 'y', n(box[1] + 8, p), 'width', n(box[2] - 16, p),
-			'height', n(box[3] - 16, p), 'rx', n(rx, p)].concat(body));
-		out += el('rect', ['x', n(bx, p), 'y', n(by, p), 'width', n(bw, p), 'height', n(bh, p),
-			'rx', n(rx / 2, p), 'fill', c.col('trim')]);
-		// the window: ink between the reels, the paper strips, the cells projected onto the drum
-		// (ADR 003: y = R sin θ, sy = cos θ, and nothing else knows it is a cylinder), one shade over
-		// all of it, and the clip that makes the neighbours' halves correct
-		var win = el('rect', ['x', n(x0, p), 'y', n(y0, p), 'width', n(ww, p), 'height', n(wh, p), 'fill', c.col('ink')]);
-		for (var i = 0; i < k; i++) {
-			var x = x0 + i * (CW + GAP), s = strip(i, c), stop = Math.floor(c.S('reel:' + i + ':stop')() * LEN);
-			win += el('rect', ['x', n(x, p), 'y', n(y0, p), 'width', CW, 'height', n(wh, p), 'fill', c.col('strip')]);
-			for (var row = -1; row <= 1; row++) {
+		// the cabinet style: the caller's, or flat on dark and line on light (M1)
+		var cab = o.style ? c.flat : o.theme !== 'light';
+		var line = c.col('outline'), trim = c.col('trim'), ink = c.col('ink'), W6 = n(6 * c.w, 2);
+		var fill = function (col) { return cab ? ['fill', col] : ['fill', 'none', 'stroke', line, 'stroke-width', W6]; };
+		var rect = function (x, y, w, h, r, paint) {
+			return el('rect', ['x', n(x, p), 'y', n(y, p), 'width', n(w, p), 'height', n(h, p), 'rx', r ? n(r, p) : null].concat(paint));
+		};
+
+		// ── the cabinet's numbers, every one its own stream (cab:*)
+		var side = 36 + 28 * S('cab:side')(), mh = 100 + 50 * S('cab:marquee')(), ph = one ? 0 : 80 + 50 * S('cab:panel')();
+		var td = 40 + 20 * S('cab:tray')(), rx = 24 + 24 * S('cab:rx')(), shape = Math.floor(3 * S('cab:top')());
+		var rise = shape ? 50 + 50 * S('cab:rise')() : 0;
+		var L = bx - side, mt = by - 28 - mh, top = mt - 28, high = Math.min(top - rise, mt - 21), pb = by + bh + (ph ? 24 + ph : 0);
+		var tt = pb + 24, bot = tt + td + 28;
+
+		// the body: one path, so its outline is one rule under line
+		var d = 'M' + n(L, p) + ' ' + n(bot - rx, p) + 'V' + n(top, p);
+		if (shape === 1) d += 'Q0 ' + n(top - 2 * rise, p) + ' ' + n(-L, p) + ' ' + n(top, p);
+		else if (shape === 2) {
+			var s1 = n(L * 0.7, p), s2 = n(L * 0.35, p);
+			d += 'H' + s1 + 'V' + n(top - rise / 2, p) + 'H' + s2 + 'V' + n(top - rise, p) + 'H' + n(-s2, p) +
+				'V' + n(top - rise / 2, p) + 'H' + n(-s1, p) + 'V' + n(top, p) + 'H' + n(-L, p);
+		} else d += 'H' + n(-L, p);
+		d += 'V' + n(bot - rx, p) + 'Q' + n(-L, p) + ' ' + n(bot, p) + ' ' + n(-L - rx, p) + ' ' + n(bot, p) +
+			'H' + n(L + rx, p) + 'Q' + n(L, p) + ' ' + n(bot, p) + ' ' + n(L, p) + ' ' + n(bot - rx, p) + 'Z';
+		var out = el('path', ['d', d, 'stroke-linejoin', 'round'].concat(fill(c.col('body'))));
+
+		// the marquee: dark glass carrying the lattice in gold, ringed by bulbs
+		var mx = bx + 16, mw = bw - 32, gold = c.col('gold');
+		out += rect(mx, mt, mw, mh, 16, fill(ink)) + rect(mx, mt, mw, mh, 16, tile(c, cab ? gold : line, '.4'));
+		var pitch = 34 + 14 * S('cab:bulbs')(), nx = Math.max(2, Math.round(mw / pitch)), ny = Math.max(1, Math.round(mh / pitch));
+		var bulbs = '', bulb = function (x, y) { bulbs += el('circle', ['cx', n(x, p), 'cy', n(y, p), 'r', 7]); };
+		for (i = 0; i <= nx; i++) { bulb(mx + mw * i / nx, mt - 14); bulb(mx + mw * i / nx, mt + mh + 14); }
+		for (i = 1; i < ny; i++) { bulb(mx - 14, mt + mh * i / ny); bulb(mx + mw + 14, mt + mh * i / ny); }
+		out += el('g', ['fill', gold], bulbs);
+
+		// the lower panel: a trim frame with the lattice in paper, then the tray at the foot
+		if (ph) {
+			out += rect(mx, by + bh + 24, mw, ph, 12, tile(c, cab ? c.col('strip') : line, '.25').concat(
+				['stroke', cab ? trim : line, 'stroke-width', W6]));
+		}
+		var tw = bw * 0.56;
+		out += rect(-tw / 2, tt, tw, td, 14, cab ? ['fill', trim] : ['fill', 'none', 'stroke', line, 'stroke-width', W6]) +
+			rect(-tw / 2 + 14, tt + td * 0.4, tw - 28, td * 0.35, 6, ['fill', ink]);
+
+		// the bezel, and the window: ink between the reels, the paper strips, the cells projected
+		// onto the drum (ADR 003: y = R sin θ, sy = cos θ, and nothing else knows it is a
+		// cylinder), one shade over all of it, and the clip that makes the neighbours' halves correct
+		out += rect(bx, by, bw, bh, rx / 2, ['fill', trim]);
+		var win = rect(x0, y0, ww, wh, 0, ['fill', ink]);
+		for (i = 0; i < k; i++) {
+			var x = x0 + i * (CW + GAP), s = strip(i, c), stop = Math.floor(S('reel:' + i + ':stop')() * LEN);
+			win += rect(x, y0, CW, wh, 0, ['fill', c.col('strip')]);
+			for (var row = one ? 0 : -1; row <= (one ? 0 : 1); row++) {
 				var cell = s[(stop + row + LEN) % LEN], th = row * STEP;
 				win += el('use', ['href', '#' + sym(cell[0], cell[1], c), 'transform', 'translate(' + n(x + CW / 2, p) +
 					' ' + n(R * Math.sin(th), p) + ')' + (row ? ' scale(1 ' + n(Math.cos(th), 3) + ')' : '')]);
@@ -455,19 +557,33 @@
 		}
 		var shade = c.add('shade', function () {
 			return el('linearGradient', ['id', '%', 'x2', 0, 'y2', 1],
-				el('stop', ['stop-color', c.col('ink'), 'stop-opacity', '.55']) +
-				el('stop', ['offset', '.5', 'stop-color', c.col('ink'), 'stop-opacity', 0]) +
-				el('stop', ['offset', 1, 'stop-color', c.col('ink'), 'stop-opacity', '.55']));
+				el('stop', ['stop-color', ink, 'stop-opacity', '.55']) +
+				el('stop', ['offset', '.5', 'stop-color', ink, 'stop-opacity', 0]) +
+				el('stop', ['offset', 1, 'stop-color', ink, 'stop-opacity', '.55']));
 		});
-		win += el('rect', ['x', n(x0, p), 'y', n(y0, p), 'width', n(ww, p), 'height', n(wh, p), 'fill', 'url(#' + shade + ')']);
+		win += rect(x0, y0, ww, wh, 0, ['fill', 'url(#' + shade + ')']);
 		var clip = c.add('window', function () {
-			return el('clipPath', ['id', '%'], el('rect', ['x', n(x0, p), 'y', n(y0, p), 'width', n(ww, p), 'height', n(wh, p)]));
+			return el('clipPath', ['id', '%'], rect(x0, y0, ww, wh, 0, []));
 		});
 		out += el('g', ['clip-path', 'url(#' + clip + ')'], win);
 		if (o.payline !== false) {
 			// a rule, like the strips are rects: a constant `d` here would widen ADR 004 unseen
-			out += el('line', ['x1', n(x0, p), 'x2', n(-x0, p), 'stroke', c.col('ink'), 'stroke-width', n(4 * c.w, p)]);
+			out += el('line', ['x1', n(x0, p), 'x2', n(-x0, p), 'stroke', ink, 'stroke-width', n(4 * c.w, p)]);
 		}
+
+		// the lever: a plate on the right side, a rod leaning out, a red ball
+		var right = -L;
+		if (o.lever !== false) {
+			var len = (one ? 180 : 260) + 60 * S('cab:lever')(), a = (4 + 12 * S('cab:angle')()) * Math.PI / 180;
+			var br = 24 + 12 * S('cab:ball')(), lx = -L + 14, ex = lx + len * Math.sin(a), ey = -len * Math.cos(a);
+			out += el('line', ['x1', n(lx, p), 'x2', n(ex, p), 'y2', n(ey, p), 'stroke', trim, 'stroke-width', 12, 'stroke-linecap', 'round']) +
+				rect(-L - 6, -50, 30, 100, 10, ['fill', trim]) +
+				el('circle', ['cx', n(ex, p), 'cy', n(ey, p), 'r', n(br, p)].concat(paint(c, c.col('red')))) +
+				(c.flat ? el('circle', ['cx', n(ex + br * 0.3, p), 'cy', n(ey - br * 0.3, p), 'r', n(br * 0.28, p), 'fill', c.col('strip'), 'fill-opacity', '.5']) : '');
+			right = Math.max(right + 24, ex + br);
+		}
+		var box = [L - 16, high - 16, right - L + 32, 0];
+		box[3] = bot + 16 - box[1];
 		return wrap(o, c, box, out);
 	}
 

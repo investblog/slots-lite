@@ -67,17 +67,24 @@ is clipped, which is correct: a real window shows parts of the neighbours.
 |---|---|---|
 | Reel strip | `CW` wide, the window's height, paper (`strip`) in both themes | no |
 | Symbol cell | the symbol at `translate(x, R sin θ) scale(1, cos θ)` | which symbol |
-| Drum shade | one vertical gradient over the window: `ink` at α≈0.55 → 0 → 0.55 | no |
-| Payline | a rule across the window at y = 0 and a notch on each side of the bezel | no |
-| Bezel | the window's frame, `rx` seeded | radius |
-| Cabinet body | a silhouette around the bezel: `flat`, `arch` or `crown` top | silhouette, proportions |
-| Marquee | a panel above the window, ringed by bulbs | bulb count and pitch |
-| Panel lattice | the family's trigon / hex / octagon lattice on the body panels (cards' back port) | lattice, pitch, turn |
-| Tray | a coin tray below the window | depth |
-| Lever | a one-armed-bandit lever on the right, `lever: true` | ball size, angle |
+| Drum shade | one vertical gradient over the window: `ink` at α .55 → 0 → .55 | no |
+| Payline | a `<line>` across the window at y = 0 | no |
+| Bezel | the window's frame in `trim`, 24 wide | its radius |
+| Cabinet body | one path around everything: sides a seeded margin out from the bezel, the top `flat`, `arch` (a curve rising 50–100) or `crown` (two art-deco steps) | margin, top, rise, radius |
+| Marquee | an `ink` panel above the window carrying the lattice, ringed by `gold` bulbs | height, bulb pitch |
+| Lower panel | a `trim`-framed panel below the window carrying the lattice in paper | height |
+| Lattice | the family's trigon / hex / octagon tile (cards' back port, ADR 008 there), one `<pattern>` for both panels | kind, pitch, turn, phase, weight |
+| Tray | a `trim` coin tray at the foot with an `ink` opening | depth |
+| Lever | a `trim` plate and rod on the right, a `red` ball; `lever: false` removes it | length, angle, ball size |
 
-The cabinet parts are the first thing M3 will revise on screen; the table fixes what is seeded,
-not how it looks.
+All of it is built from the seeded numbers, so the cabinet contributes no fixed `d` (ADR 004). The
+cabinet follows the **cabinet style**: `style` when it is given, otherwise `flat` in the dark theme
+and `line` in the light one (M1). A `line` cabinet draws its body, panels and tray as rules in
+`outline` — the cabinet hue's middle stop, which the family's `derive()` guarantees ≥ 2.5 against
+the page — because the body colour itself was nearly invisible as a rule on a dark page (M2). The
+reels, the symbols, the bulbs and the ball follow `style` only; they are small or paper.
+
+`rows: 1` narrows the window to ±24° — one row, the payline — and the cabinet follows the window.
 
 ## Symbols
 
@@ -139,6 +146,8 @@ Derived, never a brand colour — the constants a machine is read by:
 - `bar` — near-black, cards' `spade` formula: the bar plaque is the one black symbol.
 - `ink` — the drum shade, the payline, the dividers.
 - `trim` — metal: chrome for a grey brand, otherwise a brass from `gold`'s hue at lower chroma.
+- `outline` — a `line` cabinet's rule: the cabinet colour's middle `derive()` stop, ≥ 2.5 against
+  the page in both themes.
 - `gem` — the procedural gem: the cabinet's hue at the suit lightness, guarded ≥ 3 against the
   paper. The cabinet colour itself cannot sit on a reel — in the light theme it is a pastel.
 
@@ -226,7 +235,7 @@ returns the static bytes exactly.
 ```js
 Slots.machine(opts)             // → string. The whole machine. Pure; Node and browser.
 Slots.symbol(opts)              // → string. One symbol on its em — an icon. Pure.
-Slots.palette(brand, {theme})   // → {red, gold, violet, green, bar, strip, ink, trim, gem, body, background, halo, stroke}
+Slots.palette(brand, {theme})   // → {red, gold, violet, green, bar, strip, ink, trim, gem, body, outline, background, halo, stroke}
 Slots.init(el, opts)            // browser → {el, get(), set(opts), destroy()}
 ```
 
@@ -239,7 +248,7 @@ Slots.init(el, opts)            // browser → {el, get(), set(opts), destroy()}
 | `theme` | `'dark'` | `'dark'` \| `'light'` — derived colours only |
 | `style` | `'flat'` | `'line'` \| `'flat'`; the cabinet defaults to `line` under `theme: 'light'` |
 | `weight` | `1` | line weight multiplier |
-| `red gold violet green bar strip ink trim gem body` | `'auto'` | any CSS colour string |
+| `red gold violet green bar strip ink trim gem body outline` | `'auto'` | any CSS colour string |
 | `classic` | `true` | `false` = procedural symbols only, no fixed path |
 | `size` | — | width; the height follows the viewBox |
 | `precision` | `0` | decimals for coordinates |
@@ -282,8 +291,16 @@ custom-property name is a seeded token. The one carved exception is the counted 
   against a forecast of ~1.1 KB for the symbols alone (240 B of it the calligraphic seven and the
   reworked gem). 2.4 KB remain for the cabinet, the spin, `init()` and the results, which ADR 007
   forecast at ~2.7 KB: the budget will have to move at the M4 freeze.
-- Output: *provisional*, measured at M3 over 60 seeds and stated as a band. Forecast: 5–9 KB raw
-  for a three-reel machine, most of it the cabinet.
+- Output, measured at M3 over 60 seeds (forecast 5–9 KB raw for three reels):
+
+  | Machine | Raw | Gzip |
+  |---|---|---|
+  | three reels (default) | 5.8–8.7 KB, median 6.9 | 1.5–2.1 KB |
+  | five reels | 7.8–10.7 KB, median 9.1 | 1.7–2.3 KB |
+  | `style: 'line'` | 4.8–6.8 KB | 1.3–1.8 KB |
+  | `rows: 1` | 3.9–5.4 KB | 1.1–1.4 KB |
+- Library at M3: **7076 B** — the cabinet and the lattice port added 1345 B. 1116 B remain for
+  the results, the spin and `init()` (forecast ~0.9 KB); the budget is decided at the M4 freeze.
 
 ## Promotion
 

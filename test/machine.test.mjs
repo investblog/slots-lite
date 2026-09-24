@@ -34,7 +34,8 @@ test('brand never touches geometry, and seed never touches colour', () => {
 	}
 	// the seed picks which symbols are shown, so a machine's colour list moves with it; what may not
 	// move is the colour of any one thing — the cabinet, and each symbol drawn alone
-	const colours = (svg) => (svg.match(/(fill|stroke|stop-color)="[^"]*"/gu) || []).join();
+	// a url(#…) is a reference to a seeded id, not a colour
+	const colours = (svg) => (svg.match(/(fill|stroke|stop-color)="(?!url)[^"]*"/gu) || []).join();
 	const cabinet = (svg) => colours(body(svg).slice(0, body(svg).indexOf('<g')));
 	assert.ok(cabinet(Slots.machine({ seed: 2 })).length > 0);
 	assert.equal(cabinet(Slots.machine({ seed: 2 })), cabinet(Slots.machine({ seed: 3 })));

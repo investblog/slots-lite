@@ -8,7 +8,7 @@ import { createRequire } from 'node:module';
 import Slots from '../slots.js';
 
 const require = createRequire(import.meta.url);
-const ROLES = ['red', 'gold', 'violet', 'green', 'bar', 'strip', 'ink', 'trim', 'gem', 'body', 'background', 'halo'];
+const ROLES = ['red', 'gold', 'violet', 'green', 'bar', 'strip', 'ink', 'trim', 'gem', 'body', 'outline', 'background', 'halo'];
 const BRANDS = [undefined, '#00abf3', ['#00abf3', '#d6af3c', '#a91455'], '#8a8a8a', '#d97706', '#7c3aed', ['#2f9e44', '#8a8a8a']];
 
 test('loads as an ES module default import and as CommonJS, and they are the same object', () => {
