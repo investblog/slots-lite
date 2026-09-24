@@ -30,3 +30,31 @@ ADR 006 did.
 
 - `roles()` is written at M0 from this table so that `palette()` exists; M1 may change every number
   in it, and nothing else in the library may depend on those numbers until then.
+
+## Addendum — 2026-09-24: M1, decided on the prototype by the user
+
+Seven brands × both themes (the spintax triad, single blue `#1d4ed8`, terracotta `#d97706`, green
+`#2f9e44`, violet `#7c3aed`, grey `#8a8a8a`, blue + terracotta) were rendered outside the library,
+with stand-in marks on the reels at 360 px, dark on `background` and light on a white page. Three
+things came back:
+
+**1. `violet` is 325° ±20.** Measured, the 320° ±35 window captured royal blue (`#1d4ed8`, H 296 —
+24° in) and indigo (`#4338ca`, H 303 — 17° in). On screen a blue brand drew a blue plum on a blue
+cabinet, and "the brand's main colour becomes the machine" held only for the triad, whose blue is
+at H 256. At 325° ±20 violet (`#7c3aed`, H 309), purple (`#9333ea`, 313), fuchsia (`#c026d3`,
+324) and dark purples (`#86198f`, 325; `#581c87`, 314) are still in; both blues are out; crimson
+(`#a91455`, H 3) and pink (`#db2777`, H 0) still go to `red`. The fallback hue moves with the centre.
+
+**2. `gold` is never tinted.** With the ±15° lean an unclaimed gold turned orange for the blue and
+violet brands (`#ce862d`, H 70) and olive for the green one (`#a19920`, H 100). Held at 85° it is
+`#b99020` for all three. A captured gold is untouched — terracotta's orange bell is its own brand
+colour, captured at 21°. A bell and a lemon in one gold read as two symbols by shape.
+
+**3. Under `theme: 'light'` the cabinet defaults to `line`.** The filled body in the light theme is
+`derive()`'s L 72 stop: contrast 1.98 against the paper for every brand, a large pastel field on a
+white page, and lavender (`#aca7ff`) for a blue brand. Two filled alternatives were shown — the
+L 52 stop and the brand colour as given — and the user chose the family's escape instead, as
+cards-lite's back does. An explicit `style: 'flat'` still fills it.
+
+The invariant held in all seven: paper reels, one black symbol, a red seven, a gold bell. Unchanged
+by this addendum: `derive()`, so `stroke`, `background` and `halo` stay byte-identical to hexagons.

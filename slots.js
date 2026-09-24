@@ -172,7 +172,7 @@
 		return { colors: stops, accent: accent, hot: hot, background: bg, halo: halo };
 	}
 
-	// ── colour: a classic machine from the brand (ADR 005, provisional until M1) ──
+	// ── colour: a classic machine from the brand (ADR 005, decided at M1) ──
 
 	// cards-lite's capture with the machine's four windows: every chromatic brand colour takes the
 	// role nearest its hue, nearest pairs settle first, each colour and each role at most once.
@@ -181,7 +181,8 @@
 	function roles(brand, theme) {
 		var list = brand == null ? DEFAULT_BRAND : typeof brand === 'string' ? [brand] : brand;
 		var chrom = [], grey = null, pairs = [], got = [], used = [], free = [], i, r;
-		var ROLE = [[28, 40], [85, 25], [320, 35], [145, 40]]; // red, gold, violet, green
+		// violet is narrow so the blues (H 296–303) stay free for the cabinet (ADR 005, M1)
+		var ROLE = [[28, 40], [85, 25], [325, 20], [145, 40]]; // red, gold, violet, green
 		for (i = 0; i < list.length; i++) {
 			var c = rgb2lch(parseColor(list[i]));
 			if (c[1] >= 12) chrom.push({ lch: c, hex: list[i] });
@@ -210,9 +211,10 @@
 		var field = derive(list, dk);
 		var bC = key[1], bH = key[2];
 		var clamp = function (v, lo, hi) { return Math.max(lo, Math.min(hi, v)); };
-		// an unclaimed role leans toward the brand by at most 15 degrees (cards-lite, M1)
+		// an unclaimed role leans toward the brand by at most 15 degrees (cards-lite, M1) — all but
+		// gold, which leaned orange beside a blue brand and olive beside a green one (ADR 005, M1)
 		var tint = function (hue) {
-			if (bC < 12) return hue;
+			if (bC < 12 || hue === 85) return hue;
 			var t = ((bH - hue + 540) % 360) - 180;
 			return (hue + clamp(t, -15, 15) + 360) % 360;
 		};
@@ -223,9 +225,9 @@
 		return {
 			red: role(got[0], 46, bC * 1.2, 50, 75, 28, 3),
 			// gold is lighter than a suit colour and guarded at 2.0, like cards' gilt: gold on paper
-			// is low-contrast by nature. Whether a bell and a lemon read in it is M1's question.
+			// is low-contrast by nature; a bell and a lemon tell themselves apart by shape (M1)
 			gold: role(gold, 62, bC, 45, 60, 85, 2),
-			violet: role(got[2], 40, bC * 1.1, 40, 65, 320, 3),
+			violet: role(got[2], 40, bC * 1.1, 40, 65, 325, 3),
 			green: role(got[3], 45, bC, 35, 60, 145, 3),
 			bar: ensureContrast(lch2rgb(14, Math.min(bC * 0.15, 6), bH), strip, 7, -1),
 			strip: strip,
@@ -275,8 +277,9 @@
 		var bz = 24, bx = x0 - bz, by = y0 - bz, bw = ww + 2 * bz, bh = wh + 2 * bz;
 		var box = [bx - 60, by - 200, bw + 120, bh + 360];
 		var rx = 24 + c.S('cab:rx')() * 24;
-		// flat fills the body; line draws it as a rule, the airy treatment
-		var body = c.flat
+		// flat fills the body; line draws it as a rule, the airy treatment. Under the light theme the
+		// body is a rule unless flat is asked for: filled, it was a pastel field on a white page (M1)
+		var body = (o.style ? c.flat : o.theme !== 'light')
 			? ['fill', c.col('body')]
 			: ['fill', 'none', 'stroke', c.col('body'), 'stroke-width', n(6 * c.w, p)];
 		var out = el('rect', ['x', n(box[0] + 8, p), 'y', n(box[1] + 8, p), 'width', n(box[2] - 16, p),

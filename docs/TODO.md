@@ -17,7 +17,11 @@ the way. The milestones are the v0.1 plan; this list is its public index.
   mutations; one test could not fail and was fixed). **Measured 3347 B** against the provisional
   8192. Looked at in Chromium: 3/4/5 reels, both themes, both styles. Seen there: the flat
   cabinet in the light theme is a large bright field — the ADR 005 question for M1.
-- [ ] M1 — the role table prototyped outside the library and decided by the user (ADR 005 addendum)
+- [x] M1 — the role table prototyped outside the library and decided by the user (2026-09-24,
+  ADR 005 addendum): `violet` narrowed to 325° ±20 so blue brands keep their blue for the cabinet;
+  an unclaimed `gold` is never tinted; under `theme: 'light'` the cabinet defaults to `line`.
+  18 tests; the three new ones seen red against four mutations. 3960 dark renders byte-identical
+  to M0, and `stroke`/`background`/`halo` unmoved. **Measured 3362 B.**
 - [ ] M2 — the six classic symbols (exact count into ADR 004), the three procedural ones, the drum
   projection and shade, `symbol()`
 - [ ] M3 — cabinet, reels, weight table, `reels` 3–5, `rows: 1`; output size measured

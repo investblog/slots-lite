@@ -54,3 +54,12 @@ test('size sets the width and the height follows the viewBox', () => {
 	assert.match(svg, /width="360"/u);
 	assert.match(svg, new RegExp(`height="${Math.round(360 * vb[3] / vb[2])}"`, 'u'));
 });
+
+test('under the light theme the cabinet is a rule unless flat is asked for (ADR 005, M1)', () => {
+	// the cabinet is the first shape drawn, before the bezel
+	const body = (o) => Slots.machine(o).match(/<rect [^>]*>/u)[0];
+	assert.match(body({}), /fill="#/u, 'dark fills');
+	assert.match(body({ theme: 'light' }), /fill="none" stroke="#/u, 'light draws a rule');
+	assert.match(body({ theme: 'light', style: 'flat' }), /fill="#/u, 'an explicit flat still fills');
+	assert.match(body({ style: 'line' }), /fill="none"/u, 'line is a rule in the dark too');
+});

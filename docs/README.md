@@ -112,13 +112,14 @@ fifteen visible cells carries at most nine symbol paths.
 The capture algorithm is cards-lite's ADR 006 (roulette's ADR 011 before it): chromatic brand
 colours (LCh chroma ≥ 12) take the role nearest their hue, nearest pairs settle first, each colour
 and each role at most once, ties broken by colour order then role order. An unclaimed role takes
-its classic hue **tinted** toward the brand by at most 15°.
+its classic hue **tinted** toward the brand by at most 15° — except `gold`, which keeps 85°: tinted,
+it turned orange beside a blue brand and olive beside a green one, and a bell stopped being gold.
 
 | Role | Target hue | Window | Draws |
 |---|---|---|---|
 | `red` | 28° | ±40 | seven, cherries |
 | `gold` | 85° | ±25 | bell, lemon, star, coin, bulbs |
-| `violet` | 320° | ±35 | plum |
+| `violet` | 325° | ±20 | plum |
 | `green` | 145° | ±40 | the cherry stem |
 
 Derived, never a brand colour — the constants a machine is read by:
@@ -134,15 +135,16 @@ first chromatic colour — the card back's cascade. With the default spintax tri
 captured by `red` and the gold by `gold`, so the **blue is the cabinet**: the brand's main colour
 becomes the machine, which is what a hero background wants.
 
-**All of this is provisional until M1**, when the role table is prototyped outside the library on
-seven brands in both themes and decided on screen by the user, as cards-lite's M1 was. The open
-questions M1 answers rather than asserts:
+The table was decided at M1 on a prototype outside the library — seven brands, both themes, the
+marks on the reels at 360 px — by the user (ADR 005, addendum). What the prototype settled:
 
-- whether `violet` at 320° catches the magenta and purple brands it should, and misses the blue
-  ones it should not — cards' diamond window at 265 ± 50 is a neighbour, and this one is untested;
-- whether a lemon and a bell both in `gold` read as two symbols or as one colour twice;
-- whether a cabinet in a light-theme brand colour needs the `line` escape the table and the back
-  needed.
+- `violet` is 325° ±20, not 320° ±35: the wide window took royal blue (H 296) and indigo (H 303),
+  so a blue brand drew a blue plum on a blue cabinet. The narrow one keeps violet, purple and
+  fuchsia (309–325) and leaves the blues to the cabinet.
+- A bell and a lemon in one `gold` read as two symbols: shape tells them apart, colour need not.
+- Under `theme: 'light'` the **cabinet defaults to `line`**: a filled body over a white page was a
+  pastel field at contrast 1.98 against the paper, and a blue brand came out lavender. An explicit
+  `style: 'flat'` still fills it — cards-lite's back, the same escape.
 
 **Pins win.** Any role accepts any CSS colour string; the renderer never parses a pin, only escapes
 `" < > &`. `'auto'` unpins.
@@ -218,7 +220,7 @@ Slots.init(el, opts)            // browser → {el, get(), set(opts), destroy()}
 | `seed` | `1` | a string (a domain name is fine), or a number taken as a 32-bit unsigned integer |
 | `brand` | spintax triad `['#00abf3','#d6af3c','#a91455']` | hex or hex[] |
 | `theme` | `'dark'` | `'dark'` \| `'light'` — derived colours only |
-| `style` | `'flat'` | `'line'` \| `'flat'` |
+| `style` | `'flat'` | `'line'` \| `'flat'`; the cabinet defaults to `line` under `theme: 'light'` |
 | `weight` | `1` | line weight multiplier |
 | `red gold violet green bar strip ink trim body` | `'auto'` | any CSS colour string |
 | `classic` | `true` | `false` = procedural symbols only, no fixed path |
