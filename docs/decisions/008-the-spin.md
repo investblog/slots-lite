@@ -24,6 +24,16 @@ flat under the drum shade; at rest the cells are projected (ADR 003).
 it is coded. The fallback, stated now so it is not invented later: draw each passing symbol with the
 `sy` of the row it is passing.
 
+## Addendum — 2026-09-24: the handover, looked at
+
+Prototyped as specified and frozen at seven moments (150 ms to 2.5 s) through the Web Animations
+API, then watched live. The extras are drawn flat and the landing cells projected; at the speed the
+strip travels (1340–2340 units in 1–1.8 s) the change of scale is not readable, and the landing is
+the static picture exactly. The fallback — each extra with the `sy` of a row — was not needed. The
+extras sit **below** the window and the group travels down, so the symbols move the way a real
+reel's do. The overshoot of `cubic-bezier(.2,.7,.3,1.08)` peaks near 0.6% of the travel, about 12
+units: a settle, not a bounce. Shown to the user at M4's gate.
+
 ## Consequences
 
 - The extra symbols a spin needs are real markup — 8–14 `<use>` per reel — emitted only when

@@ -22,6 +22,14 @@ procedural symbols ~0.5 KB, the cabinet ~1.2 KB, the spin ~0.4 KB, `init()` and 
 this number is expected to move. It is **frozen after M4** at the measured size + 2.5%, rounded up
 to the next 128.
 
+## Addendum — 2026-09-24: frozen at M4, at 8192 B
+
+Measured after M4: **7885 B**. + 2.5% = 8082, rounded up to the next 128: **8192 B** — the
+provisional number, which the forecast set at M0 and the parts then met. The path there: M0 3347 ·
+M1 3362 · M2 5731 (symbols, shade, drum, strips) · M3 7085 (cabinet, lattice) · M4 7885 (results,
+spin, `init()`). The misses cancelled: the symbols and the drum came in at twice their forecast, the
+spin and `init()` at under it. From here the budget is room for fixes, not features.
+
 ## Consequences
 
 - From the freeze on, the budget is room for fixes, not features.

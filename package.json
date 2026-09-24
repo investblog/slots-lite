@@ -3,9 +3,11 @@
   "version": "0.0.0",
   "description": "A procedural slot machine as an SVG string. Seeded reels and cabinet, brand-aware classic palette, line or flat, classic and procedural symbols, an optional CSS spin. Zero dependencies; runs in Node at build time and in the browser.",
   "main": "slots.js",
+  "types": "slots.d.ts",
   "files": [
     "slots.js",
     "slots.min.js",
+    "slots.d.ts",
     "CHANGELOG.md"
   ],
   "scripts": {

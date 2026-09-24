@@ -122,7 +122,8 @@ test('two machines on one page: an id they share always means the same thing', (
 	};
 	const V = [{}, { theme: 'light' }, { theme: 'light', style: 'flat' }, { style: 'line' }, { theme: 'light', style: 'line' }, { lattice: 'none' },
 		{ lattice: 'trigon' }, { lattice: 'hex' }, { lattice: 'octagon' }, { rows: 1 }, { reels: 5 }, { lever: false },
-		{ brand: '#d97706' }, { classic: false }, { weight: 2 }];
+		{ brand: '#d97706' }, { classic: false }, { weight: 2 }, { result: 'jackpot' }, { result: 'mixed' },
+		{ symbols: [['bell', 'seven', 'plum']] }, { motion: 'spin' }];
 	for (const seed of [1, 7, 'spintax.net']) {
 		const all = V.map((o) => defs(Slots.machine({ seed, ...o })));
 		for (let i = 0; i < V.length; i++) {

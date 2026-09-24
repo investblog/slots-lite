@@ -43,7 +43,13 @@ the way. The milestones are the v0.1 plan; this list is its public index.
   drawing. 34 tests, the new ones seen red against ten mutations; one branch the mutations proved
   dead (the ball above the cabinet's top) was removed. Output measured: 5.8–8.7 KB raw for three
   reels. **7076 B.**
-- [ ] M4 — results, the spin (prototyped first), `init()`, types, budget frozen
+- [x] M4 — done 2026-09-24. Five results constructed from their names on their own `result:*`
+  streams, checked by a decoder and a checker written longhand in `test/results.test.mjs`;
+  `symbols` pins over them. The spin, prototyped first (ADR 008 addendum): extras below the window,
+  the group travels down, reels stop left to right, reduced motion shows the rest state, speed 0 is
+  the static bytes. `init()`; `slots.d.ts`, type-checked with its errors seen red. 47 tests, the new
+  ones seen red against nineteen mutations; one mutation showed a redundant motion stream, which
+  was removed. **7885 B; budget frozen at 8192.**
 - [ ] M5 — browser gate with `--mutate`, playground, workflows on a current Node, README/CHANGELOG/RELEASING
 - [ ] M6 — integration in a static site, then 0.1.0 on the user's go
 

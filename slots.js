@@ -396,7 +396,8 @@
 		// different machines under one seed on one page never share an id (cards-lite's lesson).
 		// salt remains for the same picture twice.
 		for (var k in TINT) key += c.col(TINT[k]);
-		key += c.col('strip') + c.col('green') + c.col('ink') + c.col('outline') + c.flat + c.cab + c.w + c.p + o.lattice;
+		key += c.col('strip') + c.col('green') + c.col('ink') + c.col('outline') + c.flat + c.cab + c.w + c.p + o.lattice +
+			o.result + JSON.stringify(o.symbols);
 		c.tk = tokens(S, (o.salt || '') + key);
 		c.add = function (k, make) {
 			if (!seen[k]) { var id = c.tk(), m; seen[k] = id; m = make(); c.defs += m.replace('"%"', '"' + id + '"'); }
@@ -493,6 +494,23 @@
 		}) + ')'];
 	}
 
+	// What the payline shows under a named result: CONSTRUCTED from the name, never evaluated —
+	// there is no win here, only a picture of one (ADR 006). Each result reads its own streams.
+	function result(c, i, names, prev, cell) {
+		var r = c.o.result, has = function (x) { return names.indexOf(x) >= 0; };
+		var pick = function (list, key) { return list[Math.floor(c.S(key)() * list.length)]; };
+		var but = function (x) { return names.filter(function (m) { return m !== x; }); };
+		if (r === 'jackpot' && has('seven')) return ['seven', cell[1]];
+		if (r === 'three') return [pick(names, 'result:three'), cell[1]];
+		if (r === 'bars' && has('bar')) return ['bar', 1 + Math.floor(c.S('result:bars:' + i)() * 3)];
+		if (r === 'cherries' && has('cherry')) {
+			return i < 1 + Math.floor(c.S('result:cherries')() * 2) ? ['cherry', cell[1]]
+				: [pick(but('cherry'), 'result:cherries:' + i), cell[1]];
+		}
+		if (r === 'mixed') return [pick(but(prev), 'result:mixed:' + i), cell[1]];
+		return cell;
+	}
+
 	function machine(opts) {
 		var o = opts || {}, k = Math.max(3, Math.min(5, Math.round(o.reels) || 3)), one = o.rows === 1;
 		var c = context(o, 'machine' + k + (o.classic === false) + one), p = c.p, S = c.S, i;
@@ -545,15 +563,22 @@
 		// onto the drum (ADR 003: y = R sin θ, sy = cos θ, and nothing else knows it is a
 		// cylinder), one shade over all of it, and the clip that makes the neighbours' halves correct
 		out += rect(bx, by, bw, bh, rx / 2, ['fill', trim]);
-		var win = rect(x0, y0, ww, wh, 0, ['fill', ink]);
+		var names = o.classic === false ? PROC : CLASSIC.concat(PROC), reels = [], prev = null, pins = o.symbols || [];
+		var place = function (cell, x, y, sy) {
+			return el('use', ['href', '#' + sym(cell[0], cell[1], c), 'transform', 'translate(' + n(x, p) + ' ' + n(y, p) + ')' +
+				(sy ? ' scale(1 ' + n(sy, 3) + ')' : '')]);
+		};
 		for (i = 0; i < k; i++) {
-			var x = x0 + i * (CW + GAP), s = strip(i, c), stop = Math.floor(S('reel:' + i + ':stop')() * LEN);
-			win += rect(x, y0, CW, wh, 0, ['fill', c.col('strip')]);
+			var x = x0 + i * (CW + GAP) + CW / 2, s = strip(i, c), stop = Math.floor(S('reel:' + i + ':stop')() * LEN), cells = '';
+			// the payline: the result's, then any pin on top — precedence symbols > result > seed
+			s[stop] = result(c, i, names, prev, s[stop]);
 			for (var row = one ? 0 : -1; row <= (one ? 0 : 1); row++) {
-				var cell = s[(stop + row + LEN) % LEN], th = row * STEP;
-				win += el('use', ['href', '#' + sym(cell[0], cell[1], c), 'transform', 'translate(' + n(x + CW / 2, p) +
-					' ' + n(R * Math.sin(th), p) + ')' + (row ? ' scale(1 ' + n(Math.cos(th), 3) + ')' : '')]);
+				var at = (stop + row + LEN) % LEN, pin = (pins[i] || [])[one ? 0 : row + 1], th = row * STEP;
+				if (names.indexOf(pin) >= 0) s[at] = [pin, s[at][1]];
+				cells += place(s[at], x, R * Math.sin(th), row && Math.cos(th));
 			}
+			prev = s[stop][0];
+			reels.push([x, s, stop, cells]);
 		}
 		var shade = c.add('shade', function () {
 			return el('linearGradient', ['id', '%', 'x2', 0, 'y2', 1],
@@ -561,10 +586,32 @@
 				el('stop', ['offset', '.5', 'stop-color', ink, 'stop-opacity', 0]) +
 				el('stop', ['offset', 1, 'stop-color', ink, 'stop-opacity', '.55']));
 		});
-		win += rect(x0, y0, ww, wh, 0, ['fill', 'url(#' + shade + ')']);
 		var clip = c.add('window', function () {
 			return el('clipPath', ['id', '%'], rect(x0, y0, ww, wh, 0, []));
 		});
+		// the spin is drawn after every static def, so its names and its extras' defs come after
+		// theirs and switching it on renames nothing in the static picture; speed 0 is the static bytes
+		var speed = o.speed == null ? 1 : o.speed, mo = o.motion && speed > 0, css = '', tk = c.tk;
+		var win = rect(x0, y0, ww, wh, 0, ['fill', ink]);
+		for (i = 0; i < k; i++) {
+			var r = reels[i], body = r[3];
+			if (mo) {
+				// the strip's own next positions, below the window, flat at the 167 pitch: the group
+				// travels down from −N·167, so they cross the window and the landing cells arrive last
+				var N = 8 + Math.floor(S('reel:' + i + ':spin')() * 7), kf = tk(), cls = tk();
+				for (var j = one ? 1 : 2; j <= N + (one ? 0 : 1); j++) body += place(r[1][(r[2] + j) % LEN], r[0], 167 * j);
+				css += '@keyframes ' + kf + '{from{transform:translateY(' + -167 * N + 'px)}}.' + cls + '{animation:' + kf + ' ' +
+					n((1 + 0.4 * i) / speed, 2) + 's cubic-bezier(.2,.7,.3,1.08)}';
+				body = el('g', ['class', cls], body);
+				r.push(cls);
+			}
+			win += rect(r[0] - CW / 2, y0, CW, wh, 0, ['fill', c.col('strip')]) + body;
+		}
+		win += rect(x0, y0, ww, wh, 0, ['fill', 'url(#' + shade + ')']);
+		if (mo) {
+			out = el('style', [], css + '@media(prefers-reduced-motion:reduce){' +
+				reels.map(function (q) { return '.' + q[4]; }).join(',') + '{animation:none}}') + out;
+		}
 		out += el('g', ['clip-path', 'url(#' + clip + ')'], win);
 		if (o.payline !== false) {
 			// a rule, like the strips are rects: a constant `d` here would widen ADR 004 unseen
@@ -597,5 +644,24 @@
 		return wrap(o, c, [-80, -80, 160, 160], el('use', ['href', '#' + sym(name, bars, c)]));
 	}
 
-	return { machine: machine, symbol: symbol, palette: palette };
+	// Browser convenience: draw a machine into an element and keep it drawn. Options merge across
+	// set(), so pins stay pinned; a spin plays once per draw, and there is no loop to pause
+	// (cards-lite's init, less its draw switch).
+	function init(target, opts) {
+		var host = typeof target === 'string' ? document.querySelector(target) : target, cur = {};
+		if (!host) return null;
+		var set = function (o) {
+			for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) cur[k] = o[k];
+			host.innerHTML = machine(cur);
+		};
+		set(opts || {});
+		return {
+			el: host,
+			get: function () { var g = {}; for (var k in cur) g[k] = cur[k]; return g; },
+			set: set,
+			destroy: function () { host.innerHTML = ''; }
+		};
+	}
+
+	return { machine: machine, symbol: symbol, palette: palette, init: init };
 });

@@ -189,8 +189,16 @@ way only — name → symbols. Each result is correct **by construction**.
 | `cherries` | cherries on the first one or two reels' payline cells, not on the rest |
 | `mixed` | payline symbols drawn so that no two neighbouring reels agree |
 
-The rows above and below the payline stay the seed's in every result. `symbols` pins exact cells
-(an array per reel, top to bottom); precedence is `symbols` > `result` > seed.
+The rows above and below the payline stay the seed's in every result. Each result reads its own
+streams (`result:three`, `result:bars:i`, `result:cherries`, `result:mixed:i`), so choosing one moves
+nothing else. `mixed` draws reel *i*'s symbol from the set minus reel *i − 1*'s, so it appends like
+the reels do. Under `classic: false` a result that needs a classic symbol (`jackpot`, `bars`,
+`cherries`) is ignored and the seed's payline stays; `three` and `mixed` draw from the procedural
+three.
+
+`symbols` pins exact cells: an array per reel, top to bottom (three names, or one under `rows: 1`);
+`null` or a name the library does not have leaves that cell the seed's. A pinned `bar` keeps the
+count the strip has at that position. Precedence is `symbols` > `result` > seed.
 
 > **The seed never changes what a seven looks like. It may change whether the seven is on the line.**
 
@@ -221,13 +229,15 @@ returns the static bytes exactly.
 - **`from` with no `to`.** Each reel's strip group animates from a start offset to identity, so the
   rest state *is* the static picture and `animation: none` under reduced motion leaves the reader
   looking at the result, not at a blur.
-- The strip scrolls **flat** under the drum shade, carrying 8–14 extra symbols above the window
-  (keyed `reel:i:spin`) that pass through it; the projection applies at rest. Whether the switch
-  from flat scroll to projected rest reads on screen is an **open question for M4**, answered on a
-  prototype before the code, with the fallback stated now: the scrolling symbols are drawn with
-  the same `sy` as the row they are passing.
-- Reels stop left to right, each by its own seeded class and `animation-delay`; a slight overshoot
-  lands in the timing function, not in extra keyframes.
+- Each reel's cells sit in one group that animates `from` `translateY(−N·167)` to identity, so
+  the symbols travel **down**, as a real reel's do. The N = 8–14 extra symbols (`reel:i:spin`) are
+  the strip's own next positions, drawn below the window at the 167-unit pitch and flat; the
+  clip hides them at rest. The cells that land are projected all the way, so the handover from
+  flat to projected is the moment the last extra leaves the window — decided on screen at M4.
+- All reels start together and stop left to right: reel *i* runs `(1 + 0.4·i) / speed` seconds.
+  The overshoot is in the timing function (`cubic-bezier(.2,.7,.3,1.08)`), not in extra keyframes.
+- Motion names — keyframes and classes — are ids like any other, drawn after every static def:
+  switching the spin on renames nothing in the static picture, and a test pins it.
 - **An animated element never carries a `transform` attribute**; the placement sits on an outer
   `<g>`. No type, universal or `:nth-child` selectors — the inline `<style>` is document-global.
 - The spin is one-shot. A permanent marquee chase is backlog, not v0.1.
@@ -301,8 +311,8 @@ custom-property name is a seeded token. The one carved exception is the counted 
   | five reels | 7.8–10.7 KB, median 9.1 | 1.7–2.3 KB |
   | `style: 'line'` | 4.8–6.8 KB | 1.3–1.8 KB |
   | `rows: 1` | 3.9–5.4 KB | 1.1–1.4 KB |
-- Library at M3: **7076 B** — the cabinet and the lattice port added 1345 B. 1116 B remain for
-  the results, the spin and `init()` (forecast ~0.9 KB); the budget is decided at the M4 freeze.
+- Library at M3: **7085 B**; at M4 **7885 B** — the results, the spin and `init()` added 800 B.
+  **Budget frozen at 8192 B** (ADR 007): the measured size + 2.5%, rounded up to 128.
 
 ## Promotion
 
