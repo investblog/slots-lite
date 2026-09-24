@@ -17,7 +17,7 @@
 	var NS = 'http://www.w3.org/2000/svg';
 	var DEFAULT_BRAND = ['#00abf3', '#d6af3c', '#a91455'];
 	// machine space: origin at the centre of the payline, y down (ADR 003). Provisional until M2.
-	var CW = 200, GAP = 16, R = 260, VIEW = 60 * Math.PI / 180;
+	var CW = 200, GAP = 16, R = 260, VIEW = 60 * Math.PI / 180, STEP = 40 * Math.PI / 180, LEN = 20;
 
 	// ── numbers and markup ──────────────────────────────────────────────────
 
@@ -234,6 +234,9 @@
 			ink: ensureContrast(lch2rgb(34, Math.min(bC * 0.25, 10), bH), strip, 3, -1),
 			// metal: chrome when the brand brings a grey or no hue at all, otherwise brass
 			trim: lch2rgb(66, grey || !chrom.length ? 0 : gold ? gold[1] * 0.5 : 25, gold ? gold[2] : 85),
+			// the gem sits on a reel, so it takes the cabinet's hue, not the cabinet's colour: under the
+			// light theme that is a pastel the paper would swallow
+			gem: ensureContrast(lch2rgb(45, bC < 12 ? 0 : clamp(bC, 40, 70), bH), strip, 3, -1),
 			body: body.colors[0],
 			stroke: field.colors, background: field.background, halo: field.halo
 		};
@@ -245,12 +248,128 @@
 		return out;
 	}
 
-	// ── the machine ─────────────────────────────────────────────────────────
+	// seeded ids: [a-z][a-z0-9]{5}, never repeated within one picture — cards-lite's, unchanged
+	function tokens(S, salt) {
+		var r = S('ids' + (salt || '')), used = {}, AZ = 'abcdefghijklmnopqrstuvwxyz', AZ09 = AZ + '0123456789';
+		return function () {
+			var tk;
+			do {
+				tk = AZ.charAt(Math.floor(r() * 26));
+				for (var i = 0; i < 5; i++) tk += AZ09.charAt(Math.floor(r() * 36));
+			} while (used[tk]);
+			used[tk] = 1;
+			return tk;
+		};
+	}
 
-	function context(o) {
-		var r = roles(o.brand, o.theme);
-		return {
-			o: o, S: streams(o.seed == null ? 1 : o.seed), r: r,
+	// ── the symbols (ADR 004) ───────────────────────────────────────────────
+
+	// The classic set: eight fixed paths on the 160-unit em, origin at its centre, integers only.
+	// seven · cherries · their stem · bell · lemon · plum · the bar's plaque · the word BAR, the last
+	// a stroked skeleton like cards' rank glyphs. Nothing else in the picture is a constant `d`.
+	var D = {
+		seven: 'M-46-64H48V-40L4 64H-30L14-36H-46Z',
+		cherry: 'M-54 34a26 26 0 1 0 52 0a26 26 0 1 0-52 0M2 26a26 26 0 1 0 52 0a26 26 0 1 0-52 0',
+		stem: 'M-28 8Q-18-40 30-62M28 0Q22-34 30-62',
+		bell: 'M0-62C-30-62-40-32-42 0L-58 30H58L42 0C40-32 30-62 0-62ZM-12 44a12 12 0 1 0 24 0a12 12 0 1 0-24 0M-7-70a7 7 0 1 0 14 0a7 7 0 1 0-14 0',
+		lemon: 'M-72 0L-60-8Q-50-44 0-44T60-8L72 0L60 8Q50 44 0 44T-60 8Z',
+		plum: 'M6-52C40-56 54-24 50 14 46 48 24 66 0 64S-50 40-50 6C-50-28-30-56 6-52ZM3-52Q6-64 18-70L21-66Q12-62 11-52Z',
+		plaque: 'M-60-20H60Q68-20 68-12V12Q68 20 60 20H-60Q-68 20-68 12V-12Q-68-20-60-20Z',
+		word: 'M-40 12V-12H-29Q-22-12-22-6T-29 0H-40M-29 0Q-20 0-20 6T-29 12H-40M-11 12L0-12L11 12M-6 4H6M22 12V-12H33Q40-12 40-6T33 0H22M31 0L40 12'
+	};
+	var CLASSIC = ['seven', 'bar', 'bell', 'cherry', 'lemon', 'plum'], PROC = ['gem', 'star', 'coin'];
+	var WEIGHT = { seven: 1, bar: 2, bell: 2, cherry: 3, lemon: 3, plum: 3, gem: 2, star: 2, coin: 2 };
+	var TINT = { seven: 'red', bar: 'bar', bell: 'gold', cherry: 'red', lemon: 'gold', plum: 'violet', gem: 'gem', star: 'gold', coin: 'gold' };
+
+	// The body of a procedural symbol, from its own streams keyed by its name: the same star on
+	// every reel under one seed, and never a constant `d` (the ADR 004 test requires both)
+	function proc(name, c) {
+		var u = function (k) { return c.S('sym:' + name + ':' + k)(); }, p = c.p, d = '', i, r;
+		if (name === 'star') {
+			var pts = 5 + Math.floor(u('points') * 4), inner = 0.38 + 0.17 * u('inner');
+			for (i = 0; i < 2 * pts; i++) {
+				var a = -Math.PI / 2 + i * Math.PI / pts;
+				r = i & 1 ? 68 * inner : 68;
+				d += (i ? 'L' : 'M') + n(r * Math.cos(a), p) + ' ' + n(r * Math.sin(a) + 4, p);
+			}
+			return { d: d + 'Z' };
+		}
+		if (name === 'coin') {
+			// a disc of seeded size, and 1–3 rings struck into it in paper
+			var rings = 1 + Math.floor(u('rings') * 3), step = 8 + 6 * u('step'), rim = 58 + 6 * u('rim');
+			for (i = 0; i < rings; i++) d += circle(rim - 10 - i * step, p);
+			return { d: circle(rim, p), lines: d };
+		}
+		// gem: a crown over a pavilion, cut into 5–8 facets
+		var f = 5 + Math.floor(u('facets') * 4), t = 30 + 14 * u('table'), deep = 44 + 20 * u('depth'), g = -10, top = -46;
+		d = 'M' + n(-t, p) + ' ' + top + 'H' + n(t, p) + 'L66 ' + g + 'L0 ' + n(deep, p) + 'L-66 ' + g + 'Z';
+		var lines = 'M-66 ' + g + 'H66';
+		for (i = 1; i < f; i++) {
+			var x = -66 + 132 * i / f;
+			lines += 'M' + n(x * t / 66, p) + ' ' + top + 'L' + n(x, p) + ' ' + g + 'L0 ' + n(deep, p);
+		}
+		return { d: d, lines: lines };
+	}
+	function circle(r, p) {
+		r = n(r, p);
+		return 'M-' + r + ' 0a' + r + ' ' + r + ' 0 1 0 ' + 2 * r + ' 0a' + r + ' ' + r + ' 0 1 0-' + 2 * r + ' 0';
+	}
+
+	// flat fills, line strokes — one idiom for every symbol body, so `line` costs no path data
+	function paint(c, col) {
+		return c.flat ? ['fill', col] : ['fill', 'none', 'stroke', col, 'stroke-width', n(6 * c.w, 2)];
+	}
+
+	// A symbol as a group in <defs>, emitted once per picture however many cells show it. Its paths
+	// carry no colour — the <use> paints — which is what lets the shade reuse the same `d`.
+	function sym(name, bars, c) {
+		return c.add(name + (name === 'bar' ? bars : ''), function () {
+			var col = c.col(TINT[name]), pr = PROC.indexOf(name) >= 0 ? proc(name, c) : null;
+			var body = c.add('d:' + name, function () {
+				return el('path', ['id', '%', 'd', pr ? pr.d : D[name === 'bar' ? 'plaque' : name]]);
+			});
+			var paintBody = function (y) {
+				var out = el('use', ['href', '#' + body, 'y', y || null].concat(paint(c, col)));
+				// the shade: the same `d` again in black, masked to where a copy of it shifted up and
+				// right does not reach — a crescent on the lower left. An overlay, so a pinned colour
+				// is shaded without being parsed; flat only, since line has no fill to shade.
+				if (c.flat) {
+					var m = c.add('m:' + name, function () {
+						return el('mask', ['id', '%'], el('use', ['href', '#' + body, 'fill', '#fff']) +
+							el('use', ['href', '#' + body, 'x', 12, 'y', -10, 'fill', '#000']));
+					});
+					out += el('g', ['transform', y ? 'translate(0 ' + y + ')' : null],
+						el('use', ['href', '#' + body, 'fill', '#000', 'fill-opacity', '.22', 'mask', 'url(#' + m + ')']));
+				}
+				return out;
+			};
+			var inner = '', i;
+			if (name === 'bar') {
+				var word = c.add('d:word', function () {
+					return el('path', ['id', '%', 'd', D.word, 'fill', 'none', 'stroke-width', 6, 'stroke-linecap', 'round', 'stroke-linejoin', 'round']);
+				});
+				for (i = 0; i < bars; i++) {
+					var y = (i - (bars - 1) / 2) * 46;
+					inner += paintBody(y) + el('use', ['href', '#' + word, 'y', y || null, 'stroke', c.flat ? c.col('strip') : col]);
+				}
+			} else {
+				inner = paintBody(0);
+				if (name === 'cherry') inner += el('path', ['d', D.stem, 'fill', 'none', 'stroke', c.col('green'), 'stroke-width', 7, 'stroke-linecap', 'round']);
+				if (pr && pr.lines) {
+					inner += el('path', ['d', pr.lines, 'fill', 'none', 'stroke', c.flat ? c.col('strip') : col,
+						'stroke-width', name === 'gem' ? 3 : 4, 'stroke-opacity', c.flat ? '.6' : null, 'stroke-linejoin', 'round']);
+				}
+			}
+			return el('g', ['id', '%'], inner);
+		});
+	}
+
+	// ── the context ─────────────────────────────────────────────────────────
+
+	function context(o, what) {
+		var S = streams(o.seed == null ? 1 : o.seed), r = roles(o.brand, o.theme), seen = {}, key = what;
+		var c = {
+			o: o, S: S, r: r, defs: '',
 			p: o.precision == null ? 0 : o.precision,
 			w: o.weight == null ? 1 : o.weight,
 			flat: o.style !== 'line',
@@ -259,20 +378,47 @@
 				return pin != null && pin !== 'auto' ? esc(pin) : toHex(r[role]);
 			}
 		};
+		// Ids are keyed by WHAT IS DRAWN — the geometry and every colour a def carries — so two
+		// different machines under one seed on one page never share an id (cards-lite's lesson).
+		// salt remains for the same picture twice.
+		for (var k in TINT) key += c.col(TINT[k]);
+		key += c.col('strip') + c.col('green') + c.col('ink') + c.flat + c.w + c.p;
+		c.tk = tokens(S, (o.salt || '') + key);
+		c.add = function (k, make) {
+			if (!seen[k]) { var id = c.tk(), m; seen[k] = id; m = make(); c.defs += m.replace('"%"', '"' + id + '"'); }
+			return seen[k];
+		};
+		return c;
 	}
 
 	function wrap(o, c, box, inner) {
 		var a11y = o.title ? ['role', 'img', 'aria-label', esc(o.title)] : ['aria-hidden', 'true'];
 		var vb = box.map(function (v) { return n(v, c.p); }).join(' ');
 		return el('svg', ['xmlns', NS, 'viewBox', vb, 'width', o.size == null ? null : n(o.size),
-			'height', o.size == null ? null : n(o.size * box[3] / box[2])].concat(a11y), inner);
+			'height', o.size == null ? null : n(o.size * box[3] / box[2])].concat(a11y),
+		(c.defs ? el('defs', [], c.defs) : '') + inner);
 	}
 
-	// M0: the blank machine — body, bezel, window, paper strips and the payline — so the geometry
-	// is on screen from the first day. Symbols (M2) and the cabinet's parts (M3) come later.
+	// ── the machine ─────────────────────────────────────────────────────────
+
+	// A reel is a cyclic strip of LEN positions keyed by its index, so reels append: reel 2 of a
+	// five-reel machine is reel 2 of the three-reel one. The symbol and the bar count read separate
+	// streams, one draw each per position, so neither can shift the other.
+	function strip(i, c) {
+		var names = c.o.classic === false ? PROC : CLASSIC.concat(PROC), tot = 0, out = [], j, k;
+		var rs = c.S('reel:' + i + ':strip'), rb = c.S('reel:' + i + ':bars');
+		for (j = 0; j < names.length; j++) tot += WEIGHT[names[j]];
+		for (j = 0; j < LEN; j++) {
+			var v = rs() * tot;
+			for (k = 0; v >= WEIGHT[names[k]]; k++) v -= WEIGHT[names[k]];
+			out.push([names[k], 1 + Math.floor(rb() * 3)]);
+		}
+		return out;
+	}
+
 	function machine(opts) {
-		var o = opts || {}, c = context(o), p = c.p;
-		var k = Math.max(3, Math.min(5, Math.round(o.reels) || 3));
+		var o = opts || {}, k = Math.max(3, Math.min(5, Math.round(o.reels) || 3));
+		var c = context(o, 'machine' + k + (o.classic === false)), p = c.p;
 		var ww = k * CW + (k - 1) * GAP, wh = 2 * R * Math.sin(VIEW), x0 = -ww / 2, y0 = -wh / 2;
 		var bz = 24, bx = x0 - bz, by = y0 - bz, bw = ww + 2 * bz, bh = wh + 2 * bz;
 		var box = [bx - 60, by - 200, bw + 120, bh + 360];
@@ -286,17 +432,46 @@
 			'height', n(box[3] - 16, p), 'rx', n(rx, p)].concat(body));
 		out += el('rect', ['x', n(bx, p), 'y', n(by, p), 'width', n(bw, p), 'height', n(bh, p),
 			'rx', n(rx / 2, p), 'fill', c.col('trim')]);
-		out += el('rect', ['x', n(x0, p), 'y', n(y0, p), 'width', n(ww, p), 'height', n(wh, p), 'fill', c.col('ink')]);
+		// the window: ink between the reels, the paper strips, the cells projected onto the drum
+		// (ADR 003: y = R sin θ, sy = cos θ, and nothing else knows it is a cylinder), one shade over
+		// all of it, and the clip that makes the neighbours' halves correct
+		var win = el('rect', ['x', n(x0, p), 'y', n(y0, p), 'width', n(ww, p), 'height', n(wh, p), 'fill', c.col('ink')]);
 		for (var i = 0; i < k; i++) {
-			out += el('rect', ['x', n(x0 + i * (CW + GAP), p), 'y', n(y0, p), 'width', CW, 'height', n(wh, p),
-				'fill', c.col('strip')]);
+			var x = x0 + i * (CW + GAP), s = strip(i, c), stop = Math.floor(c.S('reel:' + i + ':stop')() * LEN);
+			win += el('rect', ['x', n(x, p), 'y', n(y0, p), 'width', CW, 'height', n(wh, p), 'fill', c.col('strip')]);
+			for (var row = -1; row <= 1; row++) {
+				var cell = s[(stop + row + LEN) % LEN], th = row * STEP;
+				win += el('use', ['href', '#' + sym(cell[0], cell[1], c), 'transform', 'translate(' + n(x + CW / 2, p) +
+					' ' + n(R * Math.sin(th), p) + ')' + (row ? ' scale(1 ' + n(Math.cos(th), 3) + ')' : '')]);
+			}
 		}
+		var shade = c.add('shade', function () {
+			return el('linearGradient', ['id', '%', 'x2', 0, 'y2', 1],
+				el('stop', ['stop-color', c.col('ink'), 'stop-opacity', '.55']) +
+				el('stop', ['offset', '.5', 'stop-color', c.col('ink'), 'stop-opacity', 0]) +
+				el('stop', ['offset', 1, 'stop-color', c.col('ink'), 'stop-opacity', '.55']));
+		});
+		win += el('rect', ['x', n(x0, p), 'y', n(y0, p), 'width', n(ww, p), 'height', n(wh, p), 'fill', 'url(#' + shade + ')']);
+		var clip = c.add('window', function () {
+			return el('clipPath', ['id', '%'], el('rect', ['x', n(x0, p), 'y', n(y0, p), 'width', n(ww, p), 'height', n(wh, p)]));
+		});
+		out += el('g', ['clip-path', 'url(#' + clip + ')'], win);
 		if (o.payline !== false) {
-			out += el('path', ['d', 'M' + n(x0, p) + ' 0H' + n(-x0, p), 'stroke', c.col('ink'),
-				'stroke-width', n(4 * c.w, p)]);
+			// a rule, like the strips are rects: a constant `d` here would widen ADR 004 unseen
+			out += el('line', ['x1', n(x0, p), 'x2', n(-x0, p), 'stroke', c.col('ink'), 'stroke-width', n(4 * c.w, p)]);
 		}
 		return wrap(o, c, box, out);
 	}
 
-	return { machine: machine, palette: palette };
+	// One symbol on its em — an icon. The name is the caller's, or the seed's.
+	function symbol(opts) {
+		var o = opts || {}, all = o.classic === false ? PROC : CLASSIC.concat(PROC);
+		var name = all.indexOf(o.symbol) >= 0 ? o.symbol
+			: all[Math.floor(streams(o.seed == null ? 1 : o.seed)('symbol')() * all.length)];
+		var bars = Math.max(1, Math.min(3, Math.round(o.bars) || 1));
+		var c = context(o, 'symbol' + name + bars);
+		return wrap(o, c, [-80, -80, 160, 160], el('use', ['href', '#' + sym(name, bars, c)]));
+	}
+
+	return { machine: machine, symbol: symbol, palette: palette };
 });

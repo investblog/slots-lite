@@ -45,8 +45,8 @@ drum illusion is a two-number projection and one `<linearGradient>`.
 
 ### Machine space
 
-Origin at the centre of the reel window (the centre of the payline), y down. All numbers are
-**provisional until M2**, when the machine is first looked at.
+Origin at the centre of the reel window (the centre of the payline), y down. Looked at on screen
+at M2 and kept as they were: at 360 px wide the foreshortened rows read as a drum.
 
 | Constant | Value | What |
 |---|---|---|
@@ -87,25 +87,35 @@ Nine symbols in two kinds. Every symbol is drawn upright on the 160-unit em, pai
 | Symbol | Kind | Role colour | Notes |
 |---|---|---|---|
 | `seven` | classic, fixed `d` | `red` | the jackpot symbol |
-| `bar` | classic, fixed `d` | `bar` plaque, `strip` rule | single / double / triple are the same `d` placed 1–3 times with `<use>` — no new path |
+| `bar` | classic, fixed `d` | `bar` plaque, `strip` lettering | the plaque and the word BAR as one stroked skeleton (cards' rank-glyph idiom); single / double / triple are the same two `d` placed 1–3 times with `<use>` — no new path |
 | `bell` | classic, fixed `d` | `gold` | |
 | `cherry` | classic, fixed `d` | `red`, stem `green` | a pair on one stem, one `d` per colour |
 | `lemon` | classic, fixed `d` | `gold` | |
 | `plum` | classic, fixed `d` | `violet` | |
-| `gem` | procedural | brand (`body` hue) | a faceted crown: 5–8 facets, table width, pavilion depth |
+| `gem` | procedural | `gem` — the cabinet's hue, guarded on paper | a faceted crown: 5–8 facets, table width, pavilion depth |
 | `star` | procedural | `gold` | 5–8 points, inner ratio 0.38–0.55 |
 | `coin` | procedural | `gold` | a rim and 1–3 rings, optionally a lattice face |
 
 **The classic set is a counted exception to no-signature** (ADR 004), the same move as cards-lite's
 ADR 005: fixed subject geometry, counted, and pinned by a test that the seed-invariant `d` set is
-exactly that list. The count is stated in the ADR as a ceiling of **8** (six symbols, the cherry's
-stem and the bar's plaque rule) and becomes an exact number at M2, when the paths exist. A
+exactly that list: **exactly 8** since M2 — seven, cherries, their stem, bell, lemon, plum, the bar's
+plaque and its lettering. The payline is a `<line>` and the strips are `<rect>`s, so the cabinet
+carries no `d` at all. A
 procedural symbol's identity is keyed by its name (`sym:gem:facets`), so the gem is the same gem on
 every reel under one seed, and it contributes **zero** seed-invariant `d` values — the test
 requires that too. `classic: false` draws only the procedural three and emits no fixed path at all.
 
-Each symbol `d` is emitted **once per picture** into `<defs>` and placed with `<use>`; a machine of
-fifteen visible cells carries at most nine symbol paths.
+Each symbol `d` is emitted **once per picture** into `<defs>`, carrying no colour, and placed with
+`<use>`, which paints it — cards' glyph idiom; a machine of fifteen visible cells carries at most
+nine symbols' paths.
+
+**The shade.** Under `flat` every symbol's body carries a crescent of shadow on its lower left, the
+flat-illustration idiom: the same `d` painted a second time in `#000` at a low opacity, masked to
+where the body is **not** covered by a copy of itself shifted up and right. It is a second painting
+of an existing path, never a new one, so it adds nothing to the ADR 004 count; and it is an overlay,
+not a derived colour, so a pinned role — which the renderer never parses — is shaded the same way.
+A two-colour symbol shades its body only (the cherries, not the stem; the plaque, not the
+lettering). Under `line` there is no fill to shade and no shade is drawn.
 
 ## Colour — a classic machine from the brand
 
@@ -129,6 +139,8 @@ Derived, never a brand colour — the constants a machine is read by:
 - `bar` — near-black, cards' `spade` formula: the bar plaque is the one black symbol.
 - `ink` — the drum shade, the payline, the dividers.
 - `trim` — metal: chrome for a grey brand, otherwise a brass from `gold`'s hue at lower chroma.
+- `gem` — the procedural gem: the cabinet's hue at the suit lightness, guarded ≥ 3 against the
+  paper. The cabinet colour itself cannot sit on a reel — in the light theme it is a pastel.
 
 The **cabinet body** is the first brand colour left over after capture, then the grey, then the
 first chromatic colour — the card back's cascade. With the default spintax triad the crimson is
@@ -181,6 +193,11 @@ like a jackpot every third seed):
 |---|---|---|---|---|---|---|---|---|---|
 | Weight | 1 | 2 | 2 | 3 | 3 | 3 | 2 | 2 | 2 |
 
+A strip is 20 positions. Each draws its symbol from `reel:i:strip` and, separately, a bar count 1–3
+from `reel:i:bars` — one draw per position whatever the symbol, so a count never shifts the strip.
+The stop — which position sits on the payline — is `reel:i:stop`. `classic: false` draws from the
+procedural three only.
+
 `reels` is 3 (default), 4 or 5, and it **appends**: under one seed, reels 0–2 of a five-reel machine
 are the three reels of the three-reel machine. `rows` is 3 (default) or 1.
 
@@ -209,7 +226,7 @@ returns the static bytes exactly.
 ```js
 Slots.machine(opts)             // → string. The whole machine. Pure; Node and browser.
 Slots.symbol(opts)              // → string. One symbol on its em — an icon. Pure.
-Slots.palette(brand, {theme})   // → {red, gold, violet, green, bar, strip, ink, trim, body, background, halo, stroke}
+Slots.palette(brand, {theme})   // → {red, gold, violet, green, bar, strip, ink, trim, gem, body, background, halo, stroke}
 Slots.init(el, opts)            // browser → {el, get(), set(opts), destroy()}
 ```
 
@@ -222,7 +239,7 @@ Slots.init(el, opts)            // browser → {el, get(), set(opts), destroy()}
 | `theme` | `'dark'` | `'dark'` \| `'light'` — derived colours only |
 | `style` | `'flat'` | `'line'` \| `'flat'`; the cabinet defaults to `line` under `theme: 'light'` |
 | `weight` | `1` | line weight multiplier |
-| `red gold violet green bar strip ink trim body` | `'auto'` | any CSS colour string |
+| `red gold violet green bar strip ink trim gem body` | `'auto'` | any CSS colour string |
 | `classic` | `true` | `false` = procedural symbols only, no fixed path |
 | `size` | — | width; the height follows the viewBox |
 | `precision` | `0` | decimals for coordinates |
@@ -261,6 +278,9 @@ custom-property name is a seeded token. The one carved exception is the counted 
   process + gzip level 9, never the `gzip` CLI). **Provisional 8192 B at M0** (ADR 007) — a
   forecast from cards-lite's measured parts, frozen after M4 at the measured size + 2.5%.
   Measured at M0: **3347 B** (the engine, `roles()` and the blank machine; cards' M0 was 3108).
+  At M2: **5491 B** — the symbols, the shade, the drum, the strips and `symbol()` added 2129 B
+  against a forecast of ~1.1 KB for the symbols alone. 2.7 KB remain for the cabinet, the spin,
+  `init()` and the results, which ADR 007 forecast at ~2.7 KB: the budget is now tight, not slack.
 - Output: *provisional*, measured at M3 over 60 seeds and stated as a band. Forecast: 5–9 KB raw
   for a three-reel machine, most of it the cabinet.
 

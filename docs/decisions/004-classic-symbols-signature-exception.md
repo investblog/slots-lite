@@ -31,6 +31,21 @@ canonical, so the exception genuinely widens the surface roulette's ADR 005 prot
 accepted because the alternative — procedural symbols only — was offered to the user on
 2026-09-23 and declined: the subject is not recognisable without the classics.
 
+## Addendum — 2026-09-24: M2, the count is exactly 8
+
+The paths exist: `seven`, `cherry`, `stem`, `bell`, `lemon`, `plum`, `plaque`, `word` — integers on
+the 160-unit em. The bar's second path is the word BAR as a stroked skeleton (cards' rank-glyph
+idiom), not the plaque rule first planned; the user rejected the plaque-and-stripe bar on the M1
+prototype. `test/symbols.test.mjs` pins the per-symbol counts (1 · 2 · 1 · 2 · 1 · 1), the union of
+8 over both styles and all bar counts, and zero fixed paths from `gem`, `star`, `coin` and the
+cabinet. Each of those checks was seen red: a ninth path on the bell, a constant path on the gem
+and one on the cabinet. Two things were changed so the scope stays honest: the payline became a
+`<line>` (as a `<path>` it was a constant `d`), and the shade paints the same `d` again rather than
+drawing a crescent of its own.
+
+The user was shown third-party references in the same session and chose the library's own shapes;
+nothing from them is shipped. One idea was taken, and it is an idiom, not geometry: the shade.
+
 ## Consequences
 
 - Growing the classic set (watermelon, grapes, horseshoe) is an amendment to this ADR with a new

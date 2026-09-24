@@ -22,10 +22,16 @@ the way. The milestones are the v0.1 plan; this list is its public index.
   an unclaimed `gold` is never tinted; under `theme: 'light'` the cabinet defaults to `line`.
   18 tests; the three new ones seen red against four mutations. 3960 dark renders byte-identical
   to M0, and `stroke`/`background`/`halo` unmoved. **Measured 3362 B.**
-- [ ] M2 — the six classic symbols (the user chose on 2026-09-24: the M1 stand-in shapes are the
-  starting geometry; the bar is to be reworked) (exact count into ADR 004), the three procedural ones, the drum
-  projection and shade, `symbol()`
-- [ ] M3 — cabinet, reels, weight table, `reels` 3–5, `rows: 1`; output size measured
+- [x] M2 — done 2026-09-24. Six classic symbols from the M1 shapes, the bar reworked into a plaque
+  with the word BAR; the lemon given tips and the plum made an egg after the first contact sheet
+  read them as a potato and an apple. Three procedural ones, the flat-only shade (the user's pick
+  from reference art, as an idiom), the drum projection and gradient, `symbol()`, and — pulled
+  forward from M3 so M2 had a machine to look at — the 20-position strips on `reel:i:*`. ADR 004
+  count **exactly 8**. 27 tests, the new ones seen red against ten mutations. **Measured 5491 B.**
+  Found on the way: `c.defs += make()` lost every def a nested `add()` wrote (JS reads the left
+  side first) — invisible in cards-lite, which never nested.
+- [ ] M3 — cabinet, `rows: 1`; output size measured (the strips, weight table and `reels` 3–5
+  appending landed at M2)
 - [ ] M4 — results, the spin (prototyped first), `init()`, types, budget frozen
 - [ ] M5 — browser gate with `--mutate`, playground, workflows on a current Node, README/CHANGELOG/RELEASING
 - [ ] M6 — integration in a static site, then 0.1.0 on the user's go
