@@ -61,7 +61,13 @@ the way. The milestones are the v0.1 plan; this list is its public index.
   bar's plaque vanished on a dark page) and the sheets stopped splitting in two. CI, release and
   bootstrap-publish workflows on `actions/*@v7` (Node 24 runtimes) and Node 22/24; the package
   packed and installed into an empty project, both import styles. README, CHANGELOG, RELEASING.
-- [ ] M6 — integration in a static site, then 0.1.0 on the user's go
+  Then: passing a default (`lattice: 'auto'`, `result: ''`, `symbols: []`) gave the same picture
+  with other id bytes — the id key now normalises them (seen red). 50 tests, **7939 B**.
+- [ ] M6 — integration in a static site, then 0.1.0 on the user's go. Open before the publish:
+  **the seven's licence** — it is refitted from the user's Recraft generation (ADR 004 addendum),
+  and whether that plan's terms allow shipping it under MIT is the user's to confirm. **GitHub
+  Pages** — the README links `investblog.github.io/slots-lite/`; no workflow deploys it, it is a
+  repository setting (deploy from `main`, root), done when the repo is created.
 
 ## Outside v0.1
 

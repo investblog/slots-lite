@@ -46,6 +46,6 @@ First release.
 - No signature in the output beyond the counted classic set: every id, class and keyframe is a
   seeded token, keyed by what is drawn, so two different machines under one seed on one page never
   share an id that means two things.
-- 49 Node tests, a browser verify page of 13 checks green in Chromium, Firefox and WebKit and in
+- 50 Node tests, a browser verify page of 13 checks green in Chromium, Firefox and WebKit and in
   both motion modes — every one of them seen to fail against a deliberately broken library — and
-  7924 B min+gzip against an 8192 B budget (ADR 007).
+  7939 B min+gzip against an 8192 B budget (ADR 007).

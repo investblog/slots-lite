@@ -396,8 +396,9 @@
 		// different machines under one seed on one page never share an id (cards-lite's lesson).
 		// salt remains for the same picture twice.
 		for (var k in TINT) key += c.col(TINT[k]);
-		key += c.col('strip') + c.col('green') + c.col('ink') + c.col('outline') + c.flat + c.cab + c.w + c.p + o.lattice +
-			o.result + JSON.stringify(o.symbols);
+		// normalised, so passing a default ('auto', '', []) is byte-identical to leaving it out
+		key += c.col('strip') + c.col('green') + c.col('ink') + c.col('outline') + c.flat + c.cab + c.w + c.p +
+			(o.lattice || 'auto') + (o.result || '') + (o.symbols && o.symbols.length ? JSON.stringify(o.symbols) : '');
 		c.key = key;
 		c.tk = tokens(S, (o.salt || '') + key);
 		c.add = function (k, make) {

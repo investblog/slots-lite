@@ -82,3 +82,12 @@ test('under the light theme the cabinet is a rule unless flat is asked for (ADR 
 	assert.match(cab({ theme: 'light', style: 'flat' }), /fill="#/u, 'an explicit flat still fills');
 	assert.match(cab({ style: 'line' }), /fill="none"/u, 'line is a rule in the dark too');
 });
+
+test('passing a default is the same as leaving it out, to the byte', () => {
+	for (const seed of [1, 'spintax.net']) {
+		const plain = Slots.machine({ seed });
+		for (const o of [{ lattice: 'auto' }, { result: '' }, { result: null }, { symbols: [] }, { symbols: null }]) {
+			assert.equal(Slots.machine({ seed, ...o }), plain, JSON.stringify(o));
+		}
+	}
+});

@@ -198,7 +198,7 @@ seeded token. The one exception is counted and tested — the 8 fixed path strin
 symbols, which are the subject itself and cannot vary without ceasing to be a slot machine
 ([ADR 004](docs/decisions/004-classic-symbols-signature-exception.md)).
 
-A three-reel machine is 5.8–8.7 KB of SVG, 1.5–2.1 KB gzipped; the library is 7924 B min+gzip,
+A three-reel machine is 5.8–8.7 KB of SVG, 1.5–2.1 KB gzipped; the library is 7939 B min+gzip,
 held under an 8192 B budget by CI.
 
 ## The family

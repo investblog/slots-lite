@@ -11,9 +11,9 @@ Docs for developers and agents. `index.html` will be the verification surface, `
 Contract-first: change the doc here **before** the code, then code.
 
 **Status (2026-09-24): M5 done.** The whole v0.1 API — `machine()`, `symbol()`, `palette()`,
-`init()` — with the symbols, the drum, the cabinet, the results and the spin; `slots.d.ts`; 49 Node
+`init()` — with the symbols, the drum, the cabinet, the results and the spin; `slots.d.ts`; 50 Node
 tests and a 13-check browser gate green in Chromium, Firefox and WebKit, both motion modes, every
-check seen red under `--mutate`; **measured 7924 B** against a budget frozen at 8192; the
+check seen red under `--mutate`; **measured 7939 B** against a budget frozen at 8192; the
 playground, CI and release workflows written. The repository is local and nothing is published:
 no GitHub repo, no npm package, version `0.0.0` — M6 is each of those on the user's go.
 Numbers marked *provisional* below are forecasts, not measurements, and each one names the
