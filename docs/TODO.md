@@ -70,8 +70,14 @@ the way. The milestones are the v0.1 plan; this list is its public index.
   - [x] Repository (2026-09-24): `investblog/slots-lite` public, `main` pushed; `npm view
     slots-lite` answered E404 that day. CI green on Node 22 and 24 with no Node 20 annotation;
     Pages from `main`/root answers 200 and the playground runs there.
-  - [ ] npm: token, `npm version minor`, bootstrap publish, Trusted Publisher, token deleted —
-    RELEASING.md, each on the user's go.
+  - [x] npm (2026-09-24): **`@spintax/slots-lite@0.1.0` published with provenance** by the
+    bootstrap workflow. Two failed runs first, nothing published by either: `EOTP` (the first
+    token lacked Bypass 2FA) and `403 … too similar to existing package stats-lite` (ADR 002
+    addendum — renamed to the scoped name npm suggested). The registry answered 404 for about five
+    minutes after the publish before the package appeared; installing it from the registry works.
+  - [ ] Trusted Publisher on npmjs.com (the user, with a second factor), then the `v0.1.0` tag
+    pushed, `bootstrap-publish.yml` deleted, the `NPM_TOKEN` secret deleted and the token revoked —
+    after cards-lite's bootstrap if that one uses the same token.
   Open before the publish:
   ~~the seven's licence~~ — decided by the user on 2026-09-24: the seven was an AI generation
   reworked for this library, so it is treated as the library's own and ships under MIT; the gem
