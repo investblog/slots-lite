@@ -63,7 +63,16 @@ the way. The milestones are the v0.1 plan; this list is its public index.
   packed and installed into an empty project, both import styles. README, CHANGELOG, RELEASING.
   Then: passing a default (`lattice: 'auto'`, `result: ''`, `symbols: []`) gave the same picture
   with other id bytes — the id key now normalises them (seen red). 50 tests, **7939 B**.
-- [ ] M6 — integration in a static site, then 0.1.0 on the user's go. Open before the publish:
+- [ ] M6 — integration in a static site, then 0.1.0 on the user's go.
+  - [x] Integration (2026-09-24): the user put it on a static site. Looked at there: a light and a
+    dark machine on one page, one hidden by `display:none` — 0 shared ids, all 78 `<use>` resolve
+    inside their own machine; the light-theme line cabinet reads on the white page.
+  - [x] Repository (2026-09-24): `investblog/slots-lite` public, `main` pushed; `npm view
+    slots-lite` answered E404 that day. CI green on Node 22 and 24 with no Node 20 annotation;
+    Pages from `main`/root answers 200 and the playground runs there.
+  - [ ] npm: token, `npm version minor`, bootstrap publish, Trusted Publisher, token deleted —
+    RELEASING.md, each on the user's go.
+  Open before the publish:
   ~~the seven's licence~~ — decided by the user on 2026-09-24: the seven was an AI generation
   reworked for this library, so it is treated as the library's own and ships under MIT; the gem
   is procedural and took only its structure from a reference. **GitHub
