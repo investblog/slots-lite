@@ -39,7 +39,7 @@ with stand-in marks on the reels at 360 px, dark on `background` and light on a 
 things came back:
 
 **1. `violet` is 325° ±20.** Measured, the 320° ±35 window captured royal blue (`#1d4ed8`, H 296 —
-24° in) and indigo (`#4338ca`, H 303 — 17° in). On screen a blue brand drew a blue plum on a blue
+24° from the centre) and indigo (`#4338ca`, H 303 — 17°). On screen a blue brand drew a blue plum on a blue
 cabinet, and "the brand's main colour becomes the machine" held only for the triad, whose blue is
 at H 256. At 325° ±20 violet (`#7c3aed`, H 309), purple (`#9333ea`, 313), fuchsia (`#c026d3`,
 324) and dark purples (`#86198f`, 325; `#581c87`, 314) are still in; both blues are out; crimson
