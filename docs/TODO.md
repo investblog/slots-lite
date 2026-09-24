@@ -48,8 +48,11 @@ the way. The milestones are the v0.1 plan; this list is its public index.
   `symbols` pins over them. The spin, prototyped first (ADR 008 addendum): extras below the window,
   the group travels down, reels stop left to right, reduced motion shows the rest state, speed 0 is
   the static bytes. `init()`; `slots.d.ts`, type-checked with its errors seen red. 47 tests, the new
-  ones seen red against nineteen mutations; one mutation showed a redundant motion stream, which
-  was removed. **7885 B; budget frozen at 8192.**
+  ones seen red against nineteen mutations. **7924 B; budget frozen at 8192.**
+  Review follow-up: a surviving mutation had been read as a redundant motion stream and the stream
+  removed — it was a missing test. Two spins differing only in `speed` shared every class name, so
+  the later `<style>` timed both (cards-lite's finding 3 again). The stream is back, salted with
+  `speed`. And `rows: 1` showed a sliver of its first extra at rest; the extras start lower.
 - [ ] M5 — browser gate with `--mutate`, playground, workflows on a current Node, README/CHANGELOG/RELEASING
 - [ ] M6 — integration in a static site, then 0.1.0 on the user's go
 

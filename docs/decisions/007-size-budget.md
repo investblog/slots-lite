@@ -24,10 +24,11 @@ to the next 128.
 
 ## Addendum — 2026-09-24: frozen at M4, at 8192 B
 
-Measured after M4: **7885 B**. + 2.5% = 8082, rounded up to the next 128: **8192 B** — the
+Measured after M4: **7885 B** (7924 after its review fixes). + 2.5% = 8122, rounded up to the
+next 128: **8192 B** — the
 provisional number, which the forecast set at M0 and the parts then met. The path there: M0 3347 ·
 M1 3362 · M2 5731 (symbols, shade, drum, strips) · M3 7085 (cabinet, lattice) · M4 7885 (results,
-spin, `init()`). The misses cancelled: the symbols and the drum came in at twice their forecast, the
+spin, `init()`; 7924 with the review's fixes). The misses cancelled: the symbols and the drum came in at twice their forecast, the
 spin and `init()` at under it. From here the budget is room for fixes, not features.
 
 ## Consequences

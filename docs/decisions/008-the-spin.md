@@ -27,12 +27,14 @@ it is coded. The fallback, stated now so it is not invented later: draw each pas
 ## Addendum — 2026-09-24: the handover, looked at
 
 Prototyped as specified and frozen at seven moments (150 ms to 2.5 s) through the Web Animations
-API, then watched live. The extras are drawn flat and the landing cells projected; at the speed the
+API; three of the frames were read (500 ms, 1250 ms, 2500 ms). The extras are drawn flat and the landing cells projected; at the speed the
 strip travels (1340–2340 units in 1–1.8 s) the change of scale is not readable, and the landing is
 the static picture exactly. The fallback — each extra with the `sy` of a row — was not needed. The
 extras sit **below** the window and the group travels down, so the symbols move the way a real
-reel's do. The overshoot of `cubic-bezier(.2,.7,.3,1.08)` peaks near 0.6% of the travel, about 12
-units: a settle, not a bounce. Shown to the user at M4's gate.
+reel's do. The overshoot of `cubic-bezier(.2,.7,.3,1.08)` peaks at 1.05% of the travel — the
+curve's maximum is 1.0105, computed — so 14–25 units over N = 8–14 cells: a settle, not a bounce.
+Under `rows: 1` the first extra showed 19 units inside the window at rest; the extras start lower
+there. The live page goes to the user at M4's gate; their verdict is not recorded yet.
 
 ## Consequences
 

@@ -398,6 +398,7 @@
 		for (var k in TINT) key += c.col(TINT[k]);
 		key += c.col('strip') + c.col('green') + c.col('ink') + c.col('outline') + c.flat + c.cab + c.w + c.p + o.lattice +
 			o.result + JSON.stringify(o.symbols);
+		c.key = key;
 		c.tk = tokens(S, (o.salt || '') + key);
 		c.add = function (k, make) {
 			if (!seen[k]) { var id = c.tk(), m; seen[k] = id; m = make(); c.defs += m.replace('"%"', '"' + id + '"'); }
@@ -589,17 +590,21 @@
 		var clip = c.add('window', function () {
 			return el('clipPath', ['id', '%'], rect(x0, y0, ww, wh, 0, []));
 		});
-		// the spin is drawn after every static def, so its names and its extras' defs come after
-		// theirs and switching it on renames nothing in the static picture; speed 0 is the static bytes
-		var speed = o.speed == null ? 1 : o.speed, mo = o.motion && speed > 0, css = '', tk = c.tk;
+		// the spin is drawn after every static def, so switching it on renames nothing in the static
+		// picture; speed 0 is the static bytes. Its names come from a stream of their own salted with
+		// the speed: two spins differing only in speed share every id, and with shared class names the
+		// later document-global <style> would time both (cards-lite's review, finding 3)
+		var speed = o.speed == null ? 1 : o.speed, mo = o.motion && speed > 0, css = '', tk;
 		var win = rect(x0, y0, ww, wh, 0, ['fill', ink]);
+		if (mo) tk = tokens(S, 'motion' + (o.salt || '') + c.key + speed);
 		for (i = 0; i < k; i++) {
 			var r = reels[i], body = r[3];
 			if (mo) {
 				// the strip's own next positions, below the window, flat at the 167 pitch: the group
-				// travels down from −N·167, so they cross the window and the landing cells arrive last
+				// travels down from −N·167, so they cross the window and the landing cells arrive last.
+				// One row's window ends at 106, so its first extra would show 19 units at rest: shift them.
 				var N = 8 + Math.floor(S('reel:' + i + ':spin')() * 7), kf = tk(), cls = tk();
-				for (var j = one ? 1 : 2; j <= N + (one ? 0 : 1); j++) body += place(r[1][(r[2] + j) % LEN], r[0], 167 * j);
+				for (var j = one ? 1 : 2; j <= N + (one ? 0 : 1); j++) body += place(r[1][(r[2] + j) % LEN], r[0], 167 * j + (one ? 19 : 0));
 				css += '@keyframes ' + kf + '{from{transform:translateY(' + -167 * N + 'px)}}.' + cls + '{animation:' + kf + ' ' +
 					n((1 + 0.4 * i) / speed, 2) + 's cubic-bezier(.2,.7,.3,1.08)}';
 				body = el('g', ['class', cls], body);

@@ -236,8 +236,10 @@ returns the static bytes exactly.
   flat to projected is the moment the last extra leaves the window — decided on screen at M4.
 - All reels start together and stop left to right: reel *i* runs `(1 + 0.4·i) / speed` seconds.
   The overshoot is in the timing function (`cubic-bezier(.2,.7,.3,1.08)`), not in extra keyframes.
-- Motion names — keyframes and classes — are ids like any other, drawn after every static def:
-  switching the spin on renames nothing in the static picture, and a test pins it.
+- Motion names — keyframes and classes — come from a stream of their own, keyed like the ids and
+  salted with `speed`: switching the spin on renames nothing in the static picture, and two spins
+  that differ only in speed do not share a class whose timing the later `<style>` would win.
+- Under `rows: 1` the extras start 19 units lower, so none of them shows at rest.
 - **An animated element never carries a `transform` attribute**; the placement sits on an outer
   `<g>`. No type, universal or `:nth-child` selectors — the inline `<style>` is document-global.
 - The spin is one-shot. A permanent marquee chase is backlog, not v0.1.
@@ -311,7 +313,7 @@ custom-property name is a seeded token. The one carved exception is the counted 
   | five reels | 7.8–10.7 KB, median 9.1 | 1.7–2.3 KB |
   | `style: 'line'` | 4.8–6.8 KB | 1.3–1.8 KB |
   | `rows: 1` | 3.9–5.4 KB | 1.1–1.4 KB |
-- Library at M3: **7085 B**; at M4 **7885 B** — the results, the spin and `init()` added 800 B.
+- Library at M3: **7085 B**; at M4 **7924 B** — the results, the spin and `init()` added 839 B.
   **Budget frozen at 8192 B** (ADR 007): the measured size + 2.5%, rounded up to 128.
 
 ## Promotion

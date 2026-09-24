@@ -90,3 +90,25 @@ test('init(): draws into an element, merges options across set(), and destroy() 
 	globalThis.document = { querySelector: () => null };
 	try { assert.equal(Slots.init('#missing'), null); } finally { delete globalThis.document; }
 });
+
+test('two spins that differ only in speed share no motion name, so neither times the other', () => {
+	const names = (svg) => new Set([...svg.match(/<style>(.*?)<\/style>/u)[1].matchAll(/@keyframes ([a-z0-9]+)|\.([a-z0-9]+)\{/gu)]
+		.map((m) => m[1] || m[2]));
+	for (let seed = 1; seed <= 10; seed++) {
+		const a = names(spin({ seed })), b = names(spin({ seed, speed: 2 }));
+		assert.equal([...a].filter((x) => b.has(x)).length, 0, `seed ${seed}`);
+	}
+});
+
+test('at rest no extra shows: each one lies wholly below the window, in both row counts', () => {
+	for (let seed = 1; seed <= 20; seed++) {
+		for (const [one, half] of [[false, 225], [true, 106]]) {
+			const svg = spin({ seed, rows: one ? 1 : 3 });
+			for (const g of svg.matchAll(/<g class="[a-z0-9]+">(.*?)<\/g>/gu)) {
+				const ys = [...g[1].matchAll(/translate\(-?\d+ (-?\d+)\)/gu)].map((m) => Number(m[1]));
+				// the landing cells are the first one or three; the rest are extras, 80 units tall above centre
+				for (const y of ys.slice(one ? 1 : 3)) assert.ok(y - 80 >= half, `seed ${seed} rows ${one ? 1 : 3}: an extra at ${y}`);
+			}
+		}
+	}
+});
