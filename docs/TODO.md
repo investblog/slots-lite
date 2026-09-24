@@ -64,8 +64,9 @@ the way. The milestones are the v0.1 plan; this list is its public index.
   Then: passing a default (`lattice: 'auto'`, `result: ''`, `symbols: []`) gave the same picture
   with other id bytes — the id key now normalises them (seen red). 50 tests, **7939 B**.
 - [ ] M6 — integration in a static site, then 0.1.0 on the user's go. Open before the publish:
-  **the seven's licence** — it is refitted from the user's Recraft generation (ADR 004 addendum),
-  and whether that plan's terms allow shipping it under MIT is the user's to confirm. **GitHub
+  ~~the seven's licence~~ — decided by the user on 2026-09-24: the seven was an AI generation
+  reworked for this library, so it is treated as the library's own and ships under MIT; the gem
+  is procedural and took only its structure from a reference. **GitHub
   Pages** — the README links `investblog.github.io/slots-lite/`; no workflow deploys it, it is a
   repository setting (deploy from `main`, root), done when the repo is created.
 
