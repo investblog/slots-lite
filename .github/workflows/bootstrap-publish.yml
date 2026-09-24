@@ -22,7 +22,7 @@ name: Bootstrap publish (one-time)
 #   4. Actions → "Bootstrap publish (one-time)" → Run workflow.
 #
 # AFTER IT SUCCEEDS, the same day:
-#   - npmjs.com → slots-lite → Settings → Trusted Publisher → GitHub Actions →
+#   - npmjs.com → @spintax/slots-lite → Settings → Trusted Publisher → GitHub Actions →
 #     investblog / slots-lite / release.yml
 #   - Repo → Settings → Secrets → DELETE NPM_TOKEN, and revoke it on npmjs.com.
 #   - Delete this workflow file. Every later release goes through release.yml
@@ -87,7 +87,7 @@ jobs:
           echo "Token shape looks valid."
 
       # package.json is born at 0.0.0 and this workflow has no tag to check itself against, so
-      # a run before `npm version minor` would put slots-lite@0.0.0 on the registry — permanently,
+      # a run before `npm version minor` would put @spintax/slots-lite@0.0.0 on the registry — permanently,
       # since npm does not free a published version. RELEASING.md says to bump first; this is the
       # backstop for the day nobody reads it.
       - name: Refuse a placeholder or an already-published version
@@ -98,8 +98,8 @@ jobs:
             echo "::error::version is still 0.0.0 — run 'npm version minor' and push the branch first (RELEASING.md step 4)."
             exit 1
           fi
-          if npm view "slots-lite@$PKG" version > /dev/null 2>&1; then
-            echo "::error::slots-lite@$PKG is already on the registry. This workflow is one-time; releases go through release.yml."
+          if npm view "@spintax/slots-lite@$PKG" version > /dev/null 2>&1; then
+            echo "::error::@spintax/slots-lite@$PKG is already on the registry. This workflow is one-time; releases go through release.yml."
             exit 1
           fi
 
@@ -121,7 +121,7 @@ jobs:
       - name: Verify the tarball carries both entry files
         run: |
           npm pack --silent > /dev/null
-          TARBALL="$(ls slots-lite-*.tgz)"
+          TARBALL="$(ls spintax-slots-lite-*.tgz)"
           tar -tzf "$TARBALL" | sed 's|^package/||' | sort
           for f in slots.js slots.min.js slots.d.ts package.json README.md LICENSE CHANGELOG.md; do
             tar -tzf "$TARBALL" | grep -qx "package/$f" || {
@@ -137,7 +137,7 @@ jobs:
       - name: Next steps
         run: |
           echo "Published. Now, the same day:"
-          echo "  1. npmjs.com -> slots-lite -> Settings -> Trusted Publisher"
+          echo "  1. npmjs.com -> @spintax/slots-lite -> Settings -> Trusted Publisher"
           echo "     GitHub Actions | investblog | slots-lite | release.yml"
           echo "  2. Delete the NPM_TOKEN secret and revoke the token."
           echo "  3. Delete this workflow file."

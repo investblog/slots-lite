@@ -22,3 +22,14 @@ repo under `investblog`. Alternates, both also free that day: `slot-lite`, `reel
 ## Consequences
 
 - The name is checked again on the day of the bootstrap publish.
+
+## Addendum — 2026-09-24: published as `@spintax/slots-lite`
+
+Checked again on the publish day, `slots-lite` was still free (E404) — and the registry refused it
+at the publish itself: `403 Forbidden — Package name too similar to existing package stats-lite;
+try renaming your package to '@spintax/slots-lite'`. npm's typosquatting guard is applied only on
+`PUT`, so "free" was never the whole question and no amount of checking beforehand shows it. The
+user chose the scoped name npm suggested: the `spintax` scope is the account the siblings are
+published from, and a scoped name cannot collide again. Only the npm name changes — the project
+name, the repository `investblog/slots-lite`, the global `Slots` and the files stay. The siblings
+stay unscoped; the next one checks its name by publishing, not by `npm view`.

@@ -37,12 +37,12 @@ jobs:
       - name: Tarball contents and consumer smoke test
         run: |
           npm pack --silent > /dev/null
-          TARBALL="$(ls slots-lite-*.tgz)"
+          TARBALL="$(ls spintax-slots-lite-*.tgz)"
           for f in slots.js slots.min.js slots.d.ts package.json README.md LICENSE CHANGELOG.md; do
             tar -tzf "$TARBALL" | grep -qx "package/$f" || { echo "::error::$f missing from the tarball"; exit 1; }
           done
           APP="$RUNNER_TEMP/consumer"
           mkdir -p "$APP" && cd "$APP" && npm init -y > /dev/null
           npm install --no-audit --no-fund "$GITHUB_WORKSPACE/$TARBALL" > /dev/null
-          node --input-type=module -e "import S from 'slots-lite'; if (!S.machine({ seed: 'ci' }).startsWith('<svg')) process.exit(1);"
-          node -e "const S = require('slots-lite'); if (!S.symbol({ symbol: 'seven' }).startsWith('<svg')) process.exit(1);"
+          node --input-type=module -e "import S from '@spintax/slots-lite'; if (!S.machine({ seed: 'ci' }).startsWith('<svg')) process.exit(1);"
+          node -e "const S = require('@spintax/slots-lite'); if (!S.symbol({ symbol: 'seven' }).startsWith('<svg')) process.exit(1);"

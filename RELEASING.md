@@ -18,8 +18,9 @@ one.
 
 1. **The repository goes public the same day as the publish.** The name was free on npm and
    GitHub when it was chosen (checked 2026-09-23, ADR 002) and stays unclaimed until the first
-   publish; a public repo announces it, so **check it again that day** (`npm view slots-lite`
-   must answer E404). The branch is already `main`, which is what `ci.yml` watches. Then
+   publish; a public repo announces it, so **check it again that day** (`npm view @spintax/slots-lite`
+   must answer E404 — and npm may still refuse a name at the publish itself as too near another;
+   `slots-lite` was, see ADR 002's addendum). The branch is already `main`, which is what `ci.yml` watches. Then
    `gh repo create investblog/slots-lite --public`, push `main`, enable Pages
    (`investblog.github.io/slots-lite/` must answer 200 — it serves `index.html`, the playground),
    and wait for CI to be green.
@@ -32,7 +33,7 @@ one.
 3. GitHub → Settings → Secrets and variables → Actions → `NPM_TOKEN`. The maintainer pastes it
    directly; it passes through no chat, file, or agent.
 4. **`npm version minor`** — `package.json` is born at `0.0.0` and the bootstrap publishes
-   whatever the ref carries, so skipping this puts **slots-lite@0.0.0** on the registry for good.
+   whatever the ref carries, so skipping this puts **@spintax/slots-lite@0.0.0** on the registry for good.
    Commit it and push **the branch only, not the tag**: a tag fires `release.yml` before the
    trusted publisher exists, which is the masked-403 `404 Not Found - PUT` below. The workflow
    refuses to run at `0.0.0` as a backstop, but the version is the maintainer's to set.
@@ -68,7 +69,7 @@ must be in hand *before* the release, not found during it — and the web flow n
 **Configure it the same day as the bootstrap publish, and delete the token the same day.** A
 token left for later is a token left for good — octagons' outlived three releases.
 
-npmjs.com → package **slots-lite** → **Settings** → **Trusted Publisher** → GitHub Actions:
+npmjs.com → package **@spintax/slots-lite** → **Settings** → **Trusted Publisher** → GitHub Actions:
 
 | Field | Value |
 |---|---|

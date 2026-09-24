@@ -7,8 +7,8 @@ seven, a gold bell, paper reels and a cabinet in your brand's main colour. Class
 procedural ones, named results such as a jackpot as pictures only, flat or line art, and an
 optional spin that stops for readers who asked for less motion. Zero dependencies, 7.7 KB gzipped.
 
-[![npm](https://img.shields.io/npm/v/slots-lite.svg)](https://www.npmjs.com/package/slots-lite)
-[![license](https://img.shields.io/npm/l/slots-lite.svg)](LICENSE)
+[![npm](https://img.shields.io/npm/v/@spintax/slots-lite.svg)](https://www.npmjs.com/package/@spintax/slots-lite)
+[![license](https://img.shields.io/npm/l/@spintax/slots-lite.svg)](LICENSE)
 
 **[Live demo →](https://investblog.github.io/slots-lite/)** — every option wired to a control, a
 24-seed contact sheet, every result, and the nine symbols.
@@ -16,13 +16,13 @@ optional spin that stops for readers who asked for less motion. Zero dependencie
 ## Install
 
 ```sh
-npm install slots-lite
+npm install @spintax/slots-lite
 ```
 
 Or from a CDN, no build step:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/slots-lite@0.1/slots.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@spintax/slots-lite@0.1/slots.min.js"></script>
 ```
 
 The file is one script in ES5 syntax that runs anywhere `Math.imul` does — current browsers and
@@ -30,7 +30,7 @@ supported Node releases (CI runs 22 and 24): a `<script>` gets the global `Slots
 bundlers get `module.exports`. Use the default import:
 
 ```js
-import Slots from 'slots-lite';
+import Slots from '@spintax/slots-lite';
 ```
 
 ## Use it

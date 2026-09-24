@@ -325,7 +325,7 @@ footer: "Made in [301](https://301.st) · for [spintax.net](https://spintax.net)
 
 ## Naming, layout, release
 
-- Package `slots-lite`, global `Slots`, repo `investblog/slots-lite`, source `slots.js`, generated
+- Package `@spintax/slots-lite` (ADR 002 addendum: npm refused `slots-lite` as too near `stats-lite`), global `Slots`, repo `investblog/slots-lite`, source `slots.js`, generated
   `slots.min.js` (not committed), types `slots.d.ts` (M4) — ADR 002.
 - ES5 IIFE with a UMD tail: CommonJS gets `module.exports`, a browser gets `window.Slots`; default
   import only (roulette's ADR 007). ES5 is the syntax, not the runtime: `Math.imul` is fine.
