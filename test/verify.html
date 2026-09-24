@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>slots-lite — verify</title>
+<style>
+	:root { --pin-a: rgb(255, 0, 0); }
+	body { font: 14px/1.5 system-ui, sans-serif; margin: 24px; background: #fff; color: #111; }
+	li.pass::marker { content: '✔ '; color: #080; }
+	li.fail::marker { content: '✘ '; color: #c00; }
+	#stage { display: flex; gap: 8px; flex-wrap: wrap; }
+	#stage > div { width: 360px; }
+	#verdict { font-weight: bold; }
+</style>
+</head>
+<body>
+<h1>slots-lite — verify</h1>
+<p>What needs a browser: parsing, id resolution on a shared page, computed colours, pixels, hit
+testing, CSS motion, <code>init()</code>. The byte-level contracts are <code>npm test</code>. The
+library is loaded cache-busted — a stale cached script once produced a convincing false FAIL in
+hexagons, and would as happily produce a false PASS.</p>
+<p id="verdict">running…</p>
+<ol id="out"></ol>
+<div id="stage"><div id="a"></div><div id="b"></div><div id="c"></div><div id="d"></div><div id="e"></div></div>
+<script>
+	(function () {
+		var out = document.getElementById('out'), failed = 0, total = 0;
+		function check(name, fn) {
+			total++;
+			var li = document.createElement('li'), ok = false, note = '';
+			try { ok = fn() === true; } catch (e) { note = ' — ' + e.message; }
+			if (!ok) failed++;
+			li.className = ok ? 'pass' : 'fail';
+			li.textContent = name + note;
+			out.appendChild(li);
+		}
+		function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+		// one pixel of a rendered picture, through an <img> and a canvas — a data URL does not taint it
+		function sample(markup, points) {
+			return new Promise(function (res, rej) {
+				var img = new Image();
+				img.onload = function () {
+					var cv = document.createElement('canvas');
+					cv.width = img.width; cv.height = img.height;
+					var g = cv.getContext('2d');
+					g.drawImage(img, 0, 0);
+					try { res(points.map(function (p) { return g.getImageData(p[0], p[1], 1, 1).data; })); } catch (e) { rej(e); }
+				};
+				img.onerror = function () { rej(new Error('the picture did not rasterise')); };
+				img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup);
+			});
+		}
+		function near(px, want, tol) {
+			for (var i = 0; i < 3; i++) if (Math.abs(px[i] - want[i]) > tol) return false;
+			return true;
+		}
+		// the body of an <svg>: its <defs> hold groups and uses that look like the drawn ones
+		function drawn(svg, sel) {
+			return [].filter.call(svg.querySelectorAll(sel), function (e) { return !e.closest('defs'); });
+		}
+
+		var s = document.createElement('script');
+		s.src = '../slots.js?ts=' + Date.now();
+		// a throw between checks — or one from an `await` outside them — would otherwise leave the
+		// page at "running…", neither PASS nor FAIL, which a CI run and a tired reader take for a pass
+		s.onload = function () {
+			run().catch(function (e) {
+				document.getElementById('verdict').textContent = 'FAIL — the suite stopped: ' + e.message;
+				document.title = 'FAIL';
+			});
+		};
+		s.onerror = function () {
+			document.getElementById('verdict').textContent = 'FAIL — library did not load';
+			document.title = 'FAIL';
+		};
+		document.head.appendChild(s);
+
+		async function run() {
+			var S = window.Slots;
+			var a = document.getElementById('a'), b = document.getElementById('b');
+			var c = document.getElementById('c'), d = document.getElementById('d');
+			var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+			check('window.Slots defines machine, symbol, palette, init', function () {
+				return typeof S.machine === 'function' && typeof S.symbol === 'function' &&
+					typeof S.palette === 'function' && typeof S.init === 'function';
+			});
+
+			check('every machine and symbol parses as SVG — styles, themes, reels, rows, results, spin', function () {
+				var parser = new DOMParser(), n = 0;
+				var bad = function (svg) { return parser.parseFromString(svg, 'image/svg+xml').getElementsByTagName('parsererror').length; };
+				for (var seed = 1; seed <= 8; seed++) {
+					for (var st of ['flat', 'line']) for (var th of ['dark', 'light']) for (var k of [3, 5]) {
+						for (var r of [undefined, 'jackpot', 'mixed']) {
+							var o = { seed: seed, style: st, theme: th, reels: k, result: r, motion: seed & 1 ? 'spin' : false, rows: seed === 3 ? 1 : 3 };
+							if (bad(S.machine(o))) throw new Error(JSON.stringify(o));
+							n++;
+						}
+					}
+					for (var name of ['seven', 'bar', 'bell', 'cherry', 'lemon', 'plum', 'gem', 'star', 'coin']) {
+						if (bad(S.symbol({ symbol: name, seed: seed, bars: 3 }))) throw new Error(name);
+					}
+				}
+				return n === 192;
+			});
+
+			// the ids are document-global the moment two machines share a page: every <use> and every
+			// url(#) of a machine must resolve to that machine's own def, or it paints the other one
+			a.innerHTML = S.machine({ seed: 1, size: 360 });
+			b.innerHTML = S.machine({ seed: 1, theme: 'light', size: 360 });
+			c.innerHTML = S.machine({ seed: 1, style: 'line', motion: 'spin', speed: 2, size: 360 });
+			d.innerHTML = S.machine({ seed: 1, result: 'jackpot', lattice: 'hex', size: 360 });
+			// b and e differ in the cabinet's style alone: same colours, same symbols
+			var e = document.getElementById('e');
+			e.innerHTML = S.machine({ seed: 1, theme: 'light', style: 'flat', size: 360 });
+			check('five machines under one seed on one page: every reference resolves inside its own machine', function () {
+				var refs = 0;
+				[a, b, c, d, e].forEach(function (host) {
+					var svg = host.querySelector('svg');
+					svg.querySelectorAll('use').forEach(function (u) {
+						var t = document.getElementById(u.getAttribute('href').slice(1));
+						refs++;
+						if (!t || !svg.contains(t)) throw new Error(host.id + ': #' + u.getAttribute('href').slice(1) + ' resolves elsewhere');
+					});
+					['fill', 'clip-path', 'mask'].forEach(function (attr) {
+						svg.querySelectorAll('[' + attr + '^="url"]').forEach(function (e) {
+							var v = e.getAttribute(attr), t = document.getElementById(v.slice(5, -1));
+							refs++;
+							if (!t || !svg.contains(t)) throw new Error(host.id + ': ' + v + ' resolves elsewhere');
+						});
+					});
+				});
+				// five empty machines resolve everything too
+				if (refs < 100) throw new Error('only ' + refs + ' references found');
+				e.innerHTML = '';
+				return true;
+			});
+
+			check('two machines with one seed and a salt share no id, class or keyframe', function () {
+				var one = S.machine({ seed: 9, motion: 'spin' }), two = S.machine({ seed: 9, motion: 'spin', salt: 'second' });
+				var names = function (s) {
+					var set = {}, re = /(?:id|class)="([a-z0-9]+)"|@keyframes ([a-z0-9]+)/g, m;
+					while ((m = re.exec(s))) set[m[1] || m[2]] = 1;
+					return set;
+				};
+				var x = names(one), y = names(two);
+				// two empty sets share nothing either
+				if (Object.keys(x).length < 20) throw new Error('only ' + Object.keys(x).length + ' names found');
+				for (var k in x) if (y[k]) throw new Error('shared: ' + k);
+				return true;
+			});
+
+			a.innerHTML = S.machine({ seed: 2, body: 'var(--pin-a, #000)', size: 360 });
+			check('a pinned var() colour resolves to the page\'s value, and follows it without a re-render', function () {
+				var body = a.querySelector('svg > path[fill^="var"]');
+				if (!body) throw new Error('the pinned cabinet is not there to read');
+				if (getComputedStyle(body).fill !== 'rgb(255, 0, 0)') throw new Error(getComputedStyle(body).fill);
+				document.documentElement.style.setProperty('--pin-a', 'rgb(0, 0, 255)');
+				var after = getComputedStyle(body).fill;
+				document.documentElement.style.setProperty('--pin-a', 'rgb(255, 0, 0)');
+				return after === 'rgb(0, 0, 255)';
+			});
+
+			// the shade is a second painting of the body's own path, masked: read it off the pixels.
+			// On the 160 em at size 160 a unit is a pixel; the plum's foot (0, 58) is where the copy
+			// shifted up and right does not reach, its middle (10, 0) is where it does.
+			var px = await sample(S.symbol({ symbol: 'plum', violet: '#ff0000', size: 160 }), [[80, 138], [90, 80]]);
+			check('the shade darkens the body\'s lower left and leaves its middle the pinned colour', function () {
+				var foot = px[0], mid = px[1];
+				if (!near(mid, [255, 0, 0], 6)) throw new Error('middle rgb(' + [mid[0], mid[1], mid[2]] + ')');
+				// .22 black over red: 255 × .78 ≈ 199
+				if (!near(foot, [199, 0, 0], 12)) throw new Error('foot rgb(' + [foot[0], foot[1], foot[2]] + ')');
+				return foot[3] === 255 && mid[3] === 255;
+			});
+
+			// and a jackpot is painted where it is placed: the seven of every reel, just below the
+			// payline, in the pinned red — the viewBox is drawn at one pixel per unit
+			var jp = S.machine({ seed: 3, result: 'jackpot', red: '#00a000' });
+			var vb = jp.match(/viewBox="([^"]+)"/)[1].split(' ').map(Number);
+			jp = jp.replace('<svg ', '<svg width="' + vb[2] + '" height="' + vb[3] + '" ');
+			var sev = await sample(jp, [-216, 0, 216].map(function (x) { return [x - vb[0], 12 - vb[1]]; }));
+			check('a jackpot paints three sevens on the payline, read off the pixels', function () {
+				sev.forEach(function (p, i) {
+					if (!near(p, [0, 160, 0], 14)) throw new Error('reel ' + i + ' rgb(' + [p[0], p[1], p[2]] + ')');
+				});
+				return true;
+			});
+
+			// the drum: the rows above and below the payline are the same symbol foreshortened
+			a.innerHTML = S.machine({ seed: 2, size: 360, symbols: [['bell', 'bell', 'bell'], ['star', 'star', 'star'], ['plum', 'plum', 'plum']] });
+			check('the rows off the payline are foreshortened by cos 40°, as the browser lays them out', function () {
+				var cells = drawn(a.querySelector('svg'), 'use[transform]');
+				if (cells.length !== 9) throw new Error(cells.length + ' cells');
+				for (var r = 0; r < 3; r++) {
+					var h = cells.slice(r * 3, r * 3 + 3).map(function (u) { return u.getBoundingClientRect().height; });
+					var q = [h[0] / h[1], h[2] / h[1]];
+					if (Math.abs(q[0] - 0.766) > 0.02 || Math.abs(q[1] - 0.766) > 0.02) throw new Error('reel ' + r + ': ' + q.map(function (v) { return v.toFixed(3); }));
+				}
+				return true;
+			});
+
+			// the spin: a group per reel travelling down, clipped by the window, landing on the static
+			c.innerHTML = S.machine({ seed: 5, motion: 'spin', size: 360 });
+			await wait(20);
+			var anims = document.getAnimations ? document.getAnimations() : [];
+			if (!reduced) {
+				check('the spin: one animation per reel, and every reel travels down', function () {
+					var groups = drawn(c.querySelector('svg'), 'g[class]');
+					if (groups.length !== 3 || anims.length !== 3) throw new Error(groups.length + ' groups, ' + anims.length + ' animations');
+					try {
+						return groups.every(function (g, i) {
+							anims[i].pause();
+							anims[i].currentTime = 0;
+							var start = g.getBoundingClientRect().top;
+							anims[i].currentTime = anims[i].effect.getTiming().duration;
+							return g.getBoundingClientRect().top > start + 100;
+						});
+					} finally { anims.forEach(function (x) { x.play(); }); }
+				});
+
+				check('while it runs, nothing is drawn outside the window: probes above and below it hit no symbol', function () {
+					var svg = c.querySelector('svg'), groups = drawn(svg, 'g[class]'), win = svg.querySelector('clipPath rect');
+					var y0 = +win.getAttribute('y'), h = +win.getAttribute('height');
+					c.scrollIntoView();
+					var probe = function () {
+						var hits = 0;
+						for (var f = 0.05; f < 0.9; f += 0.05) {
+							anims.forEach(function (x) { x.pause(); x.currentTime = x.effect.getTiming().duration * f; });
+							for (var i = 0; i < 3; i++) {
+								for (var y of [y0 - 12, y0 + h + 12]) {
+									var pt = svg.createSVGPoint();
+									pt.x = -216 + 216 * i; pt.y = y;
+									var p = pt.matrixTransform(svg.getScreenCTM());
+									var hit = document.elementFromPoint(p.x, p.y);
+									if (hit && groups[i].contains(hit)) hits++;
+								}
+							}
+						}
+						return hits;
+					};
+					try {
+						var clipped = probe();
+						// and the probe can see a violation: without the clip the symbols do cross there
+						var g = svg.querySelector('g[clip-path]'), cp = g.getAttribute('clip-path');
+						g.removeAttribute('clip-path');
+						var bare = probe();
+						g.setAttribute('clip-path', cp);
+						if (bare < 10) throw new Error('the probe saw only ' + bare + ' hits with no clip at all');
+						if (clipped) throw new Error(clipped + ' symbol hits outside the window');
+						return true;
+					} finally { anims.forEach(function (x) { x.play(); }); }
+				});
+			}
+
+			await wait(reduced ? 20 : 2600);
+			// both branches end in the same question — is every landing cell where the static
+			// machine puts it — asked by one function, relative to each machine's own <svg>
+			function settled() {
+				d.innerHTML = S.machine({ seed: 5, size: 360 });
+				var moved = drawn(c.querySelector('svg'), 'g[class] > use').filter(function (u) {
+					return Math.abs(+u.getAttribute('transform').split(' ')[1].replace(')', '')) <= 167;
+				});
+				var still = drawn(d.querySelector('svg'), 'use[transform]');
+				if (moved.length !== 9 || still.length !== 9) throw new Error(moved.length + ' and ' + still.length + ' cells');
+				var cBox = c.querySelector('svg').getBoundingClientRect(), dBox = d.querySelector('svg').getBoundingClientRect();
+				for (var i = 0; i < 9; i++) {
+					var p = moved[i].getBoundingClientRect(), q = still[i].getBoundingClientRect();
+					if (Math.abs((p.left - cBox.left) - (q.left - dBox.left)) > 1 || Math.abs((p.top - cBox.top) - (q.top - dBox.top)) > 1 ||
+						Math.abs(p.height - q.height) > 1) throw new Error('cell ' + i + ' is not where the static machine puts it');
+				}
+				return true;
+			}
+			if (reduced) {
+				check('reduced motion: a fresh spin animates nothing, and every cell is already home', function () {
+					// sampled the moment it is drawn: a finished animation stops being returned, so a
+					// count taken later would pass with the @media gate cut out (cards-lite, M5.1)
+					c.innerHTML = S.machine({ seed: 5, motion: 'spin', size: 360 });
+					var live = (document.getAnimations ? document.getAnimations() : []).length;
+					if (live !== 0) throw new Error(live + ' animations under prefers-reduced-motion');
+					return settled();
+				});
+			} else {
+				check('the spin finishes and leaves every cell exactly where the static machine is', function () {
+					if (!settled()) return false;
+					return (document.getAnimations ? document.getAnimations() : []).filter(function (x) {
+						return x.playState === 'running';
+					}).length === 0;
+				});
+			}
+
+			check('init(): null for nothing, a handle for an element, set() merges, destroy() empties', function () {
+				if (S.init('#nothing-here') !== null) throw new Error('not null');
+				var h = S.init(d, { seed: 2, body: 'var(--pin-a, #000)' });
+				if (!d.querySelector('svg')) throw new Error('did not draw');
+				h.set({ result: 'jackpot' });
+				if (d.innerHTML.indexOf('var(--pin-a') < 0) throw new Error('the pin did not survive set()');
+				if (h.get().seed !== 2) throw new Error('get() lost the options');
+				h.destroy();
+				return d.innerHTML === '';
+			});
+
+			document.getElementById('verdict').textContent = failed
+				? 'FAIL — ' + failed + ' of ' + total
+				: 'ALL GREEN — ' + total + ' checks';
+			document.title = failed ? 'FAIL' : 'PASS';
+		}
+	})();
+</script>
+</body>
+</html>
