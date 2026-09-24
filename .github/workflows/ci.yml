@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # eslint 10 (the family's since cards-lite piloted it) needs
+        # ^20.19.0 || ^22.13.0 || >=24 — both entries satisfy it. 24 is the current LTS.
+        node: [22, 24]
+    steps:
+      # v7 of both actions runs on Node 24. The family's v4 pin ran on the deprecated Node 20
+      # runtime, which GitHub forces onto 24 and annotates on every run.
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
+      # A gate, not a report (ADR 007): exits 1 above package.json config.sizeBudget. Measured by
+      # Node (terser + gzip level 9), never the gzip CLI, whose header carries the file name.
+      - name: Size gate
+        run: npm run -s size
+
+      # The package as a consumer gets it: packed, installed into an empty directory, then loaded
+      # the two ways the README promises (ADR 001) — a default import from ESM and require().
+      - name: Tarball contents and consumer smoke test
+        run: |
+          npm pack --silent > /dev/null
+          TARBALL="$(ls slots-lite-*.tgz)"
+          for f in slots.js slots.min.js slots.d.ts package.json README.md LICENSE CHANGELOG.md; do
+            tar -tzf "$TARBALL" | grep -qx "package/$f" || { echo "::error::$f missing from the tarball"; exit 1; }
+          done
+          APP="$RUNNER_TEMP/consumer"
+          mkdir -p "$APP" && cd "$APP" && npm init -y > /dev/null
+          npm install --no-audit --no-fund "$GITHUB_WORKSPACE/$TARBALL" > /dev/null
+          node --input-type=module -e "import S from 'slots-lite'; if (!S.machine({ seed: 'ci' }).startsWith('<svg')) process.exit(1);"
+          node -e "const S = require('slots-lite'); if (!S.symbol({ symbol: 'seven' }).startsWith('<svg')) process.exit(1);"

@@ -10,10 +10,12 @@ project: slots-lite
 Docs for developers and agents. `index.html` will be the verification surface, `test/` the gate.
 Contract-first: change the doc here **before** the code, then code.
 
-**Status (2026-09-23): M0 done.** This spec, ADRs 001–008, the engine ported from
-`cards-lite/cards.js` @ `8f377bc`, `palette()` and `machine()` drawing the blank machine; 15 Node
-tests, each seen red; **measured 3347 B** against the provisional 8192; looked at in Chromium. The
-repository is local and nothing is published: no GitHub repo, no npm package, version `0.0.0`.
+**Status (2026-09-24): M5 done.** The whole v0.1 API — `machine()`, `symbol()`, `palette()`,
+`init()` — with the symbols, the drum, the cabinet, the results and the spin; `slots.d.ts`; 49 Node
+tests and a 13-check browser gate green in Chromium, Firefox and WebKit, both motion modes, every
+check seen red under `--mutate`; **measured 7924 B** against a budget frozen at 8192; the
+playground, CI and release workflows written. The repository is local and nothing is published:
+no GitHub repo, no npm package, version `0.0.0` — M6 is each of those on the user's go.
 Numbers marked *provisional* below are forecasts, not measurements, and each one names the
 milestone that replaces it with a measurement. This line is kept true at every milestone.
 
@@ -250,7 +252,7 @@ returns the static bytes exactly.
 Slots.machine(opts)             // → string. The whole machine. Pure; Node and browser.
 Slots.symbol(opts)              // → string. One symbol on its em — an icon. Pure.
 Slots.palette(brand, {theme})   // → {red, gold, violet, green, bar, strip, ink, trim, gem, body, outline, background, halo, stroke}
-Slots.init(el, opts)            // browser → {el, get(), set(opts), destroy()}
+Slots.init(el, opts)            // browser → {el, get(), set(opts), destroy()}, or null when el finds nothing
 ```
 
 ### Options

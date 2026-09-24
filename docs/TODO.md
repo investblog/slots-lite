@@ -53,7 +53,14 @@ the way. The milestones are the v0.1 plan; this list is its public index.
   removed — it was a missing test. Two spins differing only in `speed` shared every class name, so
   the later `<style>` timed both (cards-lite's finding 3 again). The stream is back, salted with
   `speed`. And `rows: 1` showed a sliver of its first extra at rest; the extras start lower.
-- [ ] M5 — browser gate with `--mutate`, playground, workflows on a current Node, README/CHANGELOG/RELEASING
+- [x] M5 — done 2026-09-24. `test/verify.html`, 13 checks, ALL GREEN in Chromium, Firefox and
+  WebKit, both motion modes; `npm run gate:browser -- --mutate` breaks the library fourteen ways
+  and every check has been seen red. The first mutation run printed one uncaught mutation under a
+  green verdict — the check was missing and was added — and the runner now fails on any uncaught
+  mutation (seen red). `index.html`, looked at in a browser: symbols moved onto reel paper (the
+  bar's plaque vanished on a dark page) and the sheets stopped splitting in two. CI, release and
+  bootstrap-publish workflows on `actions/*@v7` (Node 24 runtimes) and Node 22/24; the package
+  packed and installed into an empty project, both import styles. README, CHANGELOG, RELEASING.
 - [ ] M6 — integration in a static site, then 0.1.0 on the user's go
 
 ## Outside v0.1
