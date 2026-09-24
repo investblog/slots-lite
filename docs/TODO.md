@@ -75,9 +75,11 @@ the way. The milestones are the v0.1 plan; this list is its public index.
     token lacked Bypass 2FA) and `403 … too similar to existing package stats-lite` (ADR 002
     addendum — renamed to the scoped name npm suggested). The registry answered 404 for about five
     minutes after the publish before the package appeared; installing it from the registry works.
-  - [ ] Trusted Publisher on npmjs.com (the user, with a second factor), then the `v0.1.0` tag
-    pushed, `bootstrap-publish.yml` deleted, the `NPM_TOKEN` secret deleted and the token revoked —
-    after cards-lite's bootstrap if that one uses the same token.
+  - [x] Same day: the Trusted Publisher configured by the user; the `v0.1.0` tag pushed and its
+    `release.yml` run green on the already-published check; `bootstrap-publish.yml` and the
+    `NPM_TOKEN` secret deleted from this repository. **The token itself is not revoked yet** — the
+    user keeps it for cards-lite's bootstrap; it expires about 2026-12-23 regardless. The OIDC path
+    is proven only by the first release it publishes (0.1.1 or 0.2.0): watch that run.
   Open before the publish:
   ~~the seven's licence~~ — decided by the user on 2026-09-24: the seven was an AI generation
   reworked for this library, so it is treated as the library's own and ships under MIT; the gem
